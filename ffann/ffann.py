@@ -21,6 +21,7 @@ class Node:
     self.weights = []
     self.id = id
     self.output = 0.0
+    self.lms = 0.0
 
 def sigmoid(value):
   return 1.0 / (1.0 + math.exp( (-1.0) * value) )
@@ -51,6 +52,7 @@ def process(filename,expectedResult):
     lms = (float(expectedResult) - outputLayer.output )
     lms = lms * lms
     lmsResult.append( lms )
+  inputLayer.lms = sum(lmsResult)
 
 global bestInputLayer
 bestInputLayer = Node(100)
@@ -134,7 +136,7 @@ for x in range(100): #100 times round the loop...100 different FFANN's
  constructFFANN()
 
 #Finally print and save the best FFANN....
-print("The best FFANN for "+str(intendedResult)+" is:\n")
+print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
 print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
 for x in bestHiddenLayer:
  print("Hidden layer node"+str(x.id)+", weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
