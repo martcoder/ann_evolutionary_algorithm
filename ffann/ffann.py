@@ -1,4 +1,5 @@
 
+
 #!/bin/python3
 #https://medium.com/@b.terryjack/introduction-to-deep-learning-feed-forward-neural-networks-ffnns-a-k-a-c688d83a309d 
 
@@ -44,8 +45,9 @@ def process(filename,expectedResult):
     for h in range(len(hiddenLayer)):
       outputLayer.output += hiddenLayer[h].output * outputLayer.weights[h]
     outputLayer.output += outputLayer.bias
-    outputLayer.outpout = sigmoid(outputLayer.output)
+    outputLayer.output = sigmoid(outputLayer.output)
     result.append( outputLayer.output )
+    #print("result is "+str(outputLayer.output))
     lms = (float(expectedResult) - outputLayer.output )
     lms = lms * lms
     lmsResult.append( lms )
@@ -77,10 +79,12 @@ def constructFFANN():
  #hiddenLayer = []
  for x in range(numberOfHidden):
    hiddenLayer.append(Node(x))
+   hiddenLayer[x].output = 0.0
 
  #print("length of hidden layer inside constructFFANN :"+str(len(hiddenLayer)))
  #outputLayer = Node(21)
  #now create output node weights, the same amount as there are hidden nodes
+ outputLayer.weights = []
  for x in range( len(hiddenLayer) ):
    outputLayer.weights.append( random.random() ) #initialise weight randomly
 
@@ -94,7 +98,9 @@ lmsResult = []
 intendedResult = sys.argv[2]
 
 global bestlms 
-bestlms= 10000000.0 # assigning initial high value
+bestlms= 1000000000000000000.0 # assigning initial high value
+
+constructFFANN() #create initial FFANN
 
 #Loop round creating a new FFANN each time to find the best one :)
 for x in range(100): #100 times round the loop...100 different FFANN's
@@ -102,12 +108,25 @@ for x in range(100): #100 times round the loop...100 different FFANN's
  #print("lenght of hidden layer is "+str(len(hiddenLayer)))
  process(sys.argv[1], intendedResult) # filename, func populates result list
  lmssum = sum(lmsResult)
+ print("lmssum is "+str(lmssum))
  if lmssum < bestlms: #keep this ffann as the best so far....
      print("Found new best lms of "+str(lmssum))
      bestInputLayer = copy.deepcopy(inputLayer)
+     #print("len of hidden layer is "+str(len(hiddenLayer)))
      bestHiddenLayer = copy.deepcopy(hiddenLayer)
      bestOutputLayer = copy.deepcopy(outputLayer)
- lmsresult = [] # empty this ready for the next FFANN
+     #print("The best FFANN for "+str(intendedResult)+" is:\n")
+     #print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
+     #for x in bestHiddenLayer:
+     #  print("Hidden layer node"+str(x.id)+", weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
+     #for x in bestOutputLayer.weights:
+     #  print("Best output layer weight is "+str(x)+"\n ")
+     #print("output bias is "+str(bestOutputLayer.bias))
+
+     bestlms = lmssum
+ lmsResult = [] # empty this ready for the next FFANN
+ result = []
+ #lmssum = 0.0
  #Now make new ffann....cleaning up the previous one
  inputLayer = Node(1)
  hiddenLayer = []
