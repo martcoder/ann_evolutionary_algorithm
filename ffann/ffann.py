@@ -1,6 +1,8 @@
 
 #!/bin/python3
 #https://medium.com/@b.terryjack/introduction-to-deep-learning-feed-forward-neural-networks-ffnns-a-k-a-c688d83a309d 
+#https://en.wikipedia.org/wiki/Tournament_selection
+#https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)
 
 #run as python3 ffann.py datafilename intended result
 # e.g. python3 ffan.py Accel15psi.data 15
@@ -10,6 +12,7 @@ import random
 import sys
 import copy  #https://medium.com/python-features/cloning-objects-in-python-beginner-6ad3cd859d50
 import statistics
+from datetime import datetime
 
 class Individual:
   def __init__(self,input,hidden,output):
@@ -25,7 +28,7 @@ class Node:
     self.bias = random.random()
     self.weights = []
     self.output = 0.0
-    self.lms = 0.0
+    self.lms = 999999999999999.0
 
 def sigmoid(value):
   return 1.0 / (1.0 + math.exp( (-1.0) * value) )
@@ -203,7 +206,7 @@ global bestlms
 bestlms= 1000000000000000000.0 # assigning initial high value
 
 constructFFANN() #create initial FFANN
-popsize = 500
+popsize = 200
 
 for t in range(100): # two loops of this algorithm
   #Loop round creating a new FFANN each time to find the best one :)
@@ -219,10 +222,10 @@ for t in range(100): # two loops of this algorithm
     #print("lmssum is "+str(lmssum))
     if lmssum < bestlms: #keep this ffann as the best so far....
       print("Found new best lms of "+str(lmssum))
-      bestInputLayer = copy.deepcopy(inputLayer)
+      bestInputLayer = copy.deepcopy(oldpopulation[x].inputLayer)
       #print("len of hidden layer is "+str(len(hiddenLayer)))
-      bestHiddenLayer = copy.deepcopy(hiddenLayer)
-      bestOutputLayer = copy.deepcopy(outputLayer)
+      bestHiddenLayer = copy.deepcopy(oldpopulation[x].hiddenLayer)
+      bestOutputLayer = copy.deepcopy(oldpopulation[x].outputLayer)
       #print("The best FFANN for "+str(intendedResult)+" is:\n")
       #print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
       #for x in bestHiddenLayer:
@@ -252,6 +255,17 @@ for t in range(100): # two loops of this algorithm
   newpopulation = []
   #Finally print and save the best FFANN....
   print("current population contains "+str(len(oldpopulation))+" individuals\n")
+  
+  writer = open(str(datetime.now())+"_"+str(intendedResult)+".log","a")
+  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
+  writer.write("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
+  for x in bestHiddenLayer:
+   writer.write("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
+  for x in bestOutputLayer.weights:
+    writer.write("Best output layer weight is "+str(x)+"\n ")
+  writer.write("output bias is "+str(bestOutputLayer.bias))
+  writer.close()
+
   print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
   print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
