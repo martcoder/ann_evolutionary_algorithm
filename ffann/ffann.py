@@ -1,5 +1,4 @@
 
-
 #!/bin/python3
 #https://medium.com/@b.terryjack/introduction-to-deep-learning-feed-forward-neural-networks-ffnns-a-k-a-c688d83a309d 
 
@@ -12,6 +11,11 @@ import sys
 import copy  #https://medium.com/python-features/cloning-objects-in-python-beginner-6ad3cd859d50
 import statistics
 
+class Individual:
+  def __init__(self,input,hidden,output):
+    self.inputLayer = copy.deepcopy(input)
+    self.hiddenLayer = copy.deepcopy(hidden)
+    self.outputLayer = copy.deepcopy(output)
 
 class Node:
   def __init__(self,id):
@@ -71,6 +75,12 @@ hiddenLayer = []
 global outputLayer
 outputLayer = Node(21)
 
+global oldpopulation
+oldpopulation = []
+global newpopulation
+newpopulation = []
+
+
 #print(hiddenLayer[1].id)
 def constructFFANN():
  #inputLayer = Node(1) 
@@ -90,6 +100,9 @@ def constructFFANN():
  for x in range( len(hiddenLayer) ):
    outputLayer.weights.append( random.random() ) #initialise weight randomly
 
+ #Now add to the current population list
+ 
+ oldpopulation.append(Individual(inputLayer,hiddenLayer,outputLayer))
  #print("number of hidden nodes : "+str(len(hiddenLayer)))
 
 global result 
@@ -136,6 +149,7 @@ for x in range(100): #100 times round the loop...100 different FFANN's
  constructFFANN()
 
 #Finally print and save the best FFANN....
+print("current population contains "+str(len(oldpopulation))+" individuals\n")
 print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
 print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
 for x in bestHiddenLayer:
