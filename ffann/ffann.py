@@ -15,11 +15,11 @@ import statistics
 from datetime import datetime
 
 global popsize 
-popsize = 200
+popsize = 100
 global hiddenMax
 hiddenMax = 40
 global weightMax
-weightMax = 5.0
+weightMax = 2.0
 
 class Individual:
   def __init__(self,input,hidden,output):
@@ -171,7 +171,7 @@ def tournament():
   doMutationInput = random.random()
   if(doMutationInput <0.3):
     newinput.weight = random.uniform(0.0,weightMax)
-    newinput.bias = random.random(0.0,weightMax) #https://stackoverflow.com/questions/6088077/how-to-get-a-random-number-between-a-float-range
+    newinput.bias = random.uniform(0.0,weightMax) #https://stackoverflow.com/questions/6088077/how-to-get-a-random-number-between-a-float-range
   doMutationHidden = random.random()
   if(doMutationHidden < 0.3):
     for x in newhidden:
