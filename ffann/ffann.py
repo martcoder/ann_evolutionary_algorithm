@@ -15,7 +15,9 @@ import statistics
 from datetime import datetime
 
 global popsize 
-popsize = 15
+popsize = 200
+global hiddenMax
+hiddenMax = 40
 
 class Individual:
   def __init__(self,input,hidden,output):
@@ -187,7 +189,7 @@ def tournament():
 #print(hiddenLayer[1].id)
 def constructFFANN():
  inputLayer = Node() 
- numberOfHidden = random.randint(2,20)
+ numberOfHidden = random.randint(2,hiddenMax)
  #print("number of hidden: "+str(numberOfHidden))
 
  #construct hidden layer
