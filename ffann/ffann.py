@@ -14,6 +14,9 @@ import copy  #https://medium.com/python-features/cloning-objects-in-python-begin
 import statistics
 from datetime import datetime
 
+global popsize 
+popsize = 200
+
 class Individual:
   def __init__(self,input,hidden,output):
     self.inputLayer = copy.deepcopy(input)
@@ -29,11 +32,12 @@ class Node:
     self.weights = []
     self.output = 0.0
     self.lms = 999999999999999.0
+    self.meanOutput = 100.0
 
 def sigmoid(value):
   return 1.0 / (1.0 + math.exp( (-1.0) * value) )
 
-def process(filename,expectedResult):
+def process(filename,expectedResult,member):
   filehold = open(filename,"r")
   Lines = filehold.readlines()
   for x in Lines:
@@ -42,24 +46,25 @@ def process(filename,expectedResult):
     inputLayer.input = float(value)
 
     #processing input node
-    inputLayer.output = inputLayer.input * inputLayer.weight # multiply input by weight
-    inputLayer.output = inputLayer.output + inputLayer.bias # add the bias into the mix
-    inputLayer.output = sigmoid(inputLayer.output) # run through sigmoid activation func
-    for h in hiddenLayer:
-      h.output = inputLayer.output * h.weight
+    oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.input * oldpopulation[member].inputLayer.weight # multiply input by weight
+    oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.output + oldpopulation[member].inputLayer.bias # add the bias into the mix
+    oldpopulation[member].inputLayer.output = sigmoid(oldpopulation[member].inputLayer.output) # run through sigmoid activation func
+    for h in oldpopulation[member].hiddenLayer:
+      h.output = oldpopulation[member].inputLayer.output * h.weight
       h.output = h.output + h.bias
       h.output = sigmoid(h.output)
     #now process the output node
-    for h in range(len(hiddenLayer)):
-      outputLayer.output += hiddenLayer[h].output * outputLayer.weights[h]
-    outputLayer.output += outputLayer.bias
-    outputLayer.output = sigmoid(outputLayer.output)
-    result.append( outputLayer.output )
+    for h in range(len(oldpopulation[member].hiddenLayer)):
+      #print("member number "+str(member)+" and h number "+str(h)+" and popsize is "+str(len(oldpopulation))+" and hidden len is "+str(len(oldpopulation[member].hiddenLayer))+" and weights len is "+str(len(oldpopulation[member].outputLayer.weights )))
+      oldpopulation[member].outputLayer.output += oldpopulation[member].hiddenLayer[h].output * oldpopulation[member].outputLayer.weights[h]
+    oldpopulation[member].outputLayer.output += oldpopulation[member].outputLayer.bias
+    oldpopulation[member].outputLayer.output = sigmoid(oldpopulation[member].outputLayer.output)
+    result.append( oldpopulation[member].outputLayer.output )
     #print("result is "+str(outputLayer.output))
-    lms = (float(expectedResult) - outputLayer.output )
+    lms = (float(expectedResult) - oldpopulation[member].outputLayer.output )
     lms = lms * lms
     lmsResult.append( lms )
-  inputLayer.lms = sum(lmsResult)
+  oldpopulation[member].inputLayer.lms = sum(lmsResult)
 
 global bestInputLayer
 bestInputLayer = Node()
@@ -135,16 +140,23 @@ def tournament():
   newhidden = []
   lenP0 = len(twoParent[0].hiddenLayer)
   lenP1 = len(twoParent[1].hiddenLayer)
+  newoutput = Node()
   for x in range(int(lenP0/2)):
     newhidden.append(copy.deepcopy(twoParent[0].hiddenLayer[x]) )
+    newoutput.weights.append(twoParent[0].outputLayer.weights[x])
   for x in range(int(lenP1/2)):
     newhidden.append( copy.deepcopy(twoParent[1].hiddenLayer[x]) )
+    newoutput.weights.append(twoParent[1].outputLayer.weights[x])
+  #now truncate so not too huge....
+  if len(newhidden) > 21:
+    newhidden = newhidden[0:20]
+
   #take output based on previous prob
-  newoutput = Node()
-  if(parentInputNode <= 0.5):
-    newoutput = copy.deepcopy(twoParent[0].outputLayer)
-  else:
-    newoutput = copy.deepcopy(twoParent[1].outputLayer)
+
+  #if(parentInputNode <= 0.5):
+  #0  newoutput = copy.deepcopy(twoParent[0].outputLayer)
+  #else:
+  #  newoutput = copy.deepcopy(twoParent[1].outputLayer)
   
 
   #Now do random mutation
@@ -158,8 +170,9 @@ def tournament():
       x.weight = random.random()
       x.bias = random.random()
   doMutationOutput = random.random()
+  weightChoice = random.randint(0,len(newoutput.weights)-1)
   if doMutationOutput < 0.3:
-    newoutput.weight = random.random()
+    newoutput.weights[weightChoice] = random.random()
     newoutput.bias = random.random()
 
 
@@ -173,18 +186,18 @@ def tournament():
 
 #print(hiddenLayer[1].id)
 def constructFFANN():
- #inputLayer = Node(1) 
+ inputLayer = Node() 
  numberOfHidden = random.randint(2,20)
  #print("number of hidden: "+str(numberOfHidden))
 
  #construct hidden layer
- #hiddenLayer = []
+ hiddenLayer = []
  for x in range(numberOfHidden):
    hiddenLayer.append(Node())
    hiddenLayer[x].output = 0.0
 
  #print("length of hidden layer inside constructFFANN :"+str(len(hiddenLayer)))
- #outputLayer = Node(21)
+ outputLayer = Node()
  #now create output node weights, the same amount as there are hidden nodes
  outputLayer.weights = []
  for x in range( len(hiddenLayer) ):
@@ -194,6 +207,9 @@ def constructFFANN():
  
  oldpopulation.append(Individual(inputLayer,hiddenLayer,outputLayer))
  #print("number of hidden nodes : "+str(len(hiddenLayer)))
+ inputLayer = None
+ hiddenLayer = []
+ outputLayer = None
 
 global result 
 result = []
@@ -205,24 +221,29 @@ intendedResult = sys.argv[2]
 global bestlms 
 bestlms= 1000000000000000000.0 # assigning initial high value
 
-constructFFANN() #create initial FFANN
-popsize = 200
 
-for t in range(100): # two loops of this algorithm
+
+for x in range(popsize):
+  constructFFANN() # create initial population
+
+for t in range(50): # two loops of this algorithm
   #Loop round creating a new FFANN each time to find the best one :)
-  for x in range(popsize): #e.g. 100 times round the loop...100 different FFANN's
+  for x in range(popsize): #e.g. for each member FFANN, process it
 
     #print("lenght of hidden layer is "+str(len(hiddenLayer)))
-    
+    print("just about to process member "+str(x))    
     #Run through each line of data in datafile
-    process(sys.argv[1], intendedResult) # filename, func populates result list
+    process(sys.argv[1], intendedResult, x) # filename, func populates result list
 
     #Get datafile result as LeastMeanSquared
     lmssum = sum(lmsResult)
     #print("lmssum is "+str(lmssum))
     if lmssum < bestlms: #keep this ffann as the best so far....
       print("Found new best lms of "+str(lmssum))
+      meanResult = statistics.mean(result)
+      print("And mean output was "+str(meanResult) )
       bestInputLayer = copy.deepcopy(oldpopulation[x].inputLayer)
+      bestInputLayer.meanOutput = meanResult
       #print("len of hidden layer is "+str(len(hiddenLayer)))
       bestHiddenLayer = copy.deepcopy(oldpopulation[x].hiddenLayer)
       bestOutputLayer = copy.deepcopy(oldpopulation[x].outputLayer)
@@ -242,22 +263,25 @@ for t in range(100): # two loops of this algorithm
     inputLayer = Node()
     hiddenLayer = []
     outputLayer = Node()
-    if t < 1: #only do on the first time round, as tournament will be used subsequently
-      constructFFANN()
+    #if t < 1: #only do on the first time round, as tournament will be used subsequently
+    #  constructFFANN()
+  
+  #Now CREATE NEW POPULATION
   countElite = 0
   for x in range(popsize):
     if countElite < 5:
       addElite()
       countElite += 1
     else:
-      tournament() #to construct new population
+      if len(newpopulation) < popsize:
+        tournament() #to construct new population member
   oldpopulation = copy.deepcopy(newpopulation) # now copy new population to old population
   newpopulation = []
   #Finally print and save the best FFANN....
   print("current population contains "+str(len(oldpopulation))+" individuals\n")
   
   writer = open(str(datetime.now())+"_"+str(intendedResult)+".log","a")
-  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
+  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput)+" is:\n")
   writer.write("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    writer.write("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
@@ -266,7 +290,7 @@ for t in range(100): # two loops of this algorithm
   writer.write("output bias is "+str(bestOutputLayer.bias))
   writer.close()
 
-  print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
+  print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput) +" is:\n")
   print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    print("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
