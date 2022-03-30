@@ -15,7 +15,7 @@ import statistics
 from datetime import datetime
 
 global popsize 
-popsize = 200
+popsize = 15
 
 class Individual:
   def __init__(self,input,hidden,output):
@@ -269,12 +269,16 @@ for t in range(50): # two loops of this algorithm
   #Now CREATE NEW POPULATION
   countElite = 0
   for x in range(popsize):
+    print("about to add memer to newpop")
     if countElite < 5:
       addElite()
       countElite += 1
     else:
       if len(newpopulation) < popsize:
+        print("about to tournament")
         tournament() #to construct new population member
+  countElite = 0
+  oldpopulation = []
   oldpopulation = copy.deepcopy(newpopulation) # now copy new population to old population
   newpopulation = []
   #Finally print and save the best FFANN....
