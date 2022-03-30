@@ -18,6 +18,8 @@ global popsize
 popsize = 200
 global hiddenMax
 hiddenMax = 40
+global weightMax
+weightMax = 5.0
 
 class Individual:
   def __init__(self,input,hidden,output):
@@ -29,15 +31,19 @@ class Individual:
 class Node:
   def __init__(self):
     self.input = 0.0
-    self.weight = random.random() #initialise weight randomly
-    self.bias = random.random()
+    self.weight = random.uniform(0.0,weightMax) #initialise weight randomly
+    self.bias = random.uniform(0.0,weightMax)
     self.weights = []
     self.output = 0.0
     self.lms = 999999999999999.0
     self.meanOutput = 100.0
 
+#Activation functions: https://www.geeksforgeeks.org/activation-functions-neural-networks/
 def sigmoid(value):
   return 1.0 / (1.0 + math.exp( (-1.0) * value) )
+
+def relu(value):
+  return max(0.0,value)
 
 def process(filename,expectedResult,member):
   filehold = open(filename,"r")
@@ -50,17 +56,17 @@ def process(filename,expectedResult,member):
     #processing input node
     oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.input * oldpopulation[member].inputLayer.weight # multiply input by weight
     oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.output + oldpopulation[member].inputLayer.bias # add the bias into the mix
-    oldpopulation[member].inputLayer.output = sigmoid(oldpopulation[member].inputLayer.output) # run through sigmoid activation func
+    oldpopulation[member].inputLayer.output = relu(oldpopulation[member].inputLayer.output) # run through activation func
     for h in oldpopulation[member].hiddenLayer:
       h.output = oldpopulation[member].inputLayer.output * h.weight
       h.output = h.output + h.bias
-      h.output = sigmoid(h.output)
+      h.output = relu(h.output)
     #now process the output node
     for h in range(len(oldpopulation[member].hiddenLayer)):
       #print("member number "+str(member)+" and h number "+str(h)+" and popsize is "+str(len(oldpopulation))+" and hidden len is "+str(len(oldpopulation[member].hiddenLayer))+" and weights len is "+str(len(oldpopulation[member].outputLayer.weights )))
       oldpopulation[member].outputLayer.output += oldpopulation[member].hiddenLayer[h].output * oldpopulation[member].outputLayer.weights[h]
     oldpopulation[member].outputLayer.output += oldpopulation[member].outputLayer.bias
-    oldpopulation[member].outputLayer.output = sigmoid(oldpopulation[member].outputLayer.output)
+    oldpopulation[member].outputLayer.output = relu(oldpopulation[member].outputLayer.output)
     result.append( oldpopulation[member].outputLayer.output )
     #print("result is "+str(outputLayer.output))
     lms = (float(expectedResult) - oldpopulation[member].outputLayer.output )
@@ -164,18 +170,18 @@ def tournament():
   #Now do random mutation
   doMutationInput = random.random()
   if(doMutationInput <0.3):
-    newinput.weight = random.random()
-    newinput.bias = random.random()
+    newinput.weight = random.uniform(0.0,weightMax)
+    newinput.bias = random.random(0.0,weightMax) #https://stackoverflow.com/questions/6088077/how-to-get-a-random-number-between-a-float-range
   doMutationHidden = random.random()
   if(doMutationHidden < 0.3):
     for x in newhidden:
-      x.weight = random.random()
-      x.bias = random.random()
+      x.weight = random.uniform(0.0,weightMax)
+      x.bias = random.uniform(0.0,weightMax)
   doMutationOutput = random.random()
   weightChoice = random.randint(0,len(newoutput.weights)-1)
   if doMutationOutput < 0.3:
-    newoutput.weights[weightChoice] = random.random()
-    newoutput.bias = random.random()
+    newoutput.weights[weightChoice] = random.uniform(0.0,weightMax)
+    newoutput.bias = random.uniform(0.0,weightMax)
 
 
 
