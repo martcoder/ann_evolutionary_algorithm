@@ -15,7 +15,7 @@ import statistics
 from datetime import datetime
 
 global popsize 
-popsize = 100
+popsize = 400
 global hiddenMax
 hiddenMax = 40
 global weightMax
@@ -234,7 +234,7 @@ bestlms= 1000000000000000000.0 # assigning initial high value
 for x in range(popsize):
   constructFFANN() # create initial population
 
-for t in range(50): # two loops of this algorithm
+for t in range(100): # two loops of this algorithm
   #Loop round creating a new FFANN each time to find the best one :)
   for x in range(popsize): #e.g. for each member FFANN, process it
 
