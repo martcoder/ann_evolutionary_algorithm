@@ -4,8 +4,8 @@
 #https://en.wikipedia.org/wiki/Tournament_selection
 #https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)
 
-#run as python3 ffann.py datafilename intended result
-# e.g. python3 ffan.py Accel15psi.data 15
+#run as python3 ffann.py datafilename1 filename2 filename3 intended result
+# e.g. python3 ffan.py Accel15psi.data Accel20psi.data Accel25psi.data 2000.0
 
 import math
 import random
@@ -45,34 +45,35 @@ def sigmoid(value):
 def relu(value):
   return max(0.0,value)
 
-def process(filename,expectedResult,member):
-  filehold = open(filename,"r")
-  Lines = filehold.readlines()
-  for x in Lines:
-    splitLine = x.split(',')
-    value = splitLine[0]
-    inputLayer.input = float(value)
+def process(filename1,filename2,filename3,expectedResult,member):
+ for name in [filename1,filename2,filename3]:
+   filehold = open(name,"r")
+   Lines = filehold.readlines()
+   for x in Lines:
+     splitLine = x.split(',')
+     value = splitLine[0]
+     inputLayer.input = float(value)
 
-    #processing input node
-    oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.input * oldpopulation[member].inputLayer.weight # multiply input by weight
-    oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.output + oldpopulation[member].inputLayer.bias # add the bias into the mix
-    oldpopulation[member].inputLayer.output = relu(oldpopulation[member].inputLayer.output) # run through activation func
-    for h in oldpopulation[member].hiddenLayer:
-      h.output = oldpopulation[member].inputLayer.output * h.weight
-      h.output = h.output + h.bias
-      h.output = relu(h.output)
-    #now process the output node
-    for h in range(len(oldpopulation[member].hiddenLayer)):
-      #print("member number "+str(member)+" and h number "+str(h)+" and popsize is "+str(len(oldpopulation))+" and hidden len is "+str(len(oldpopulation[member].hiddenLayer))+" and weights len is "+str(len(oldpopulation[member].outputLayer.weights )))
-      oldpopulation[member].outputLayer.output += oldpopulation[member].hiddenLayer[h].output * oldpopulation[member].outputLayer.weights[h]
-    oldpopulation[member].outputLayer.output += oldpopulation[member].outputLayer.bias
-    oldpopulation[member].outputLayer.output = relu(oldpopulation[member].outputLayer.output)
-    result.append( oldpopulation[member].outputLayer.output )
-    #print("result is "+str(outputLayer.output))
-    lms = (float(expectedResult) - oldpopulation[member].outputLayer.output )
-    lms = lms * lms
-    lmsResult.append( lms )
-  oldpopulation[member].inputLayer.lms = sum(lmsResult)
+     #processing input node
+     oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.input * oldpopulation[member].inputLayer.weight # multiply input by weight
+     oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.output + oldpopulation[member].inputLayer.bias # add the bias into the mix
+     oldpopulation[member].inputLayer.output = relu(oldpopulation[member].inputLayer.output) # run through activation func
+     for h in oldpopulation[member].hiddenLayer:
+       h.output = oldpopulation[member].inputLayer.output * h.weight
+       h.output = h.output + h.bias
+       h.output = relu(h.output)
+     #now process the output node
+     for h in range(len(oldpopulation[member].hiddenLayer)):
+       #print("member number "+str(member)+" and h number "+str(h)+" and popsize is "+str(len(oldpopulation))+" and hidden len is "+str(len(oldpopulation[member].hiddenLayer))+" and weights len is "+str(len(oldpopulation[member].outputLayer.weights )))
+       oldpopulation[member].outputLayer.output += oldpopulation[member].hiddenLayer[h].output * oldpopulation[member].outputLayer.weights[h]
+     oldpopulation[member].outputLayer.output += oldpopulation[member].outputLayer.bias
+     oldpopulation[member].outputLayer.output = relu(oldpopulation[member].outputLayer.output)
+     result.append( oldpopulation[member].outputLayer.output )
+     #print("result is "+str(outputLayer.output))
+     lms = (float(expectedResult) - oldpopulation[member].outputLayer.output )
+     lms = lms * lms
+     lmsResult.append( lms )
+ oldpopulation[member].inputLayer.lms = sum(lmsResult)
 
 global bestInputLayer
 bestInputLayer = Node()
@@ -224,7 +225,7 @@ result = []
 global lmsResult
 lmsResult = []
 
-intendedResult = sys.argv[2]
+intendedResult = sys.argv[4]
 
 global bestlms 
 bestlms= 1000000000000000000.0 # assigning initial high value
@@ -241,7 +242,7 @@ for t in range(100): # two loops of this algorithm
     #print("lenght of hidden layer is "+str(len(hiddenLayer)))
     print("just about to process member "+str(x))    
     #Run through each line of data in datafile
-    process(sys.argv[1], intendedResult, x) # filename, func populates result list
+    process(sys.argv[1], sys.argv[2], sys.argv[3], intendedResult, x) # filename, func populates result list
 
     #Get datafile result as LeastMeanSquared
     lmssum = sum(lmsResult)
