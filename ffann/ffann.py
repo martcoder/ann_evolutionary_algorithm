@@ -21,8 +21,8 @@ filenamesList = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
 global popsize 
 popsize = 400
 global hiddenMax
-hiddenMax = 40
-hiddenMin = 5
+hiddenMax = 50
+hiddenMin = 10
 global weightMax
 weightMax = 2.0
 global elitism
@@ -168,10 +168,10 @@ def tournament():
     lenP0 = len(twoParent[0].hiddenLayer)
     lenP1 = len(twoParent[1].hiddenLayer)
     #newoutput = Node()
-    for x in range(int(lenP0/2)):
+    for x in range(int(math.ceil(lenP0/2))):
       newhidden.append(copy.deepcopy(twoParent[0].hiddenLayer[x]) )
       newoutput.weights.append(twoParent[0].outputLayer.weights[x])
-    for x in range(int(lenP1/2)):
+    for x in range(int(math.ceil(lenP1/2))):
       newhidden.append( copy.deepcopy(twoParent[1].hiddenLayer[x]) )
       newoutput.weights.append(twoParent[1].outputLayer.weights[x])
     #now truncate so not too huge....
