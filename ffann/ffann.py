@@ -5,7 +5,7 @@
 #https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)
 
 #run as python3 ffann.py datafilename1 filename2 filename3 intended result
-# e.g. python3 ffan.py Accel15psi.data Accel20psi.data Accel25psi.data 2000.0
+# e.g. python3 ffan.py Accel15psi.data Accel20psi.data Accel25psi.data 20000.0
 
 import math
 import random
@@ -18,6 +18,7 @@ global popsize
 popsize = 400
 global hiddenMax
 hiddenMax = 40
+hiddenMin = 5
 global weightMax
 weightMax = 2.0
 
@@ -137,28 +138,38 @@ def tournament():
 
   #now do breeding
   newinput = Node()
-  #choose which parent to get input details from
-  parentInputNode = random.random()
-  if(parentInputNode <= 0.5):
-    newinput.weight = twoParent[0].inputLayer.weight
-    newinput.bias = twoParent[0].inputLayer.bias
-  else:
-    newinput.weight = twoParent[1].inputLayer.weight
-    newinput.bias = twoParent[1].inputLayer.bias 
-  #take half of hidden from par0, half from par1
   newhidden = []
-  lenP0 = len(twoParent[0].hiddenLayer)
-  lenP1 = len(twoParent[1].hiddenLayer)
   newoutput = Node()
-  for x in range(int(lenP0/2)):
-    newhidden.append(copy.deepcopy(twoParent[0].hiddenLayer[x]) )
-    newoutput.weights.append(twoParent[0].outputLayer.weights[x])
-  for x in range(int(lenP1/2)):
-    newhidden.append( copy.deepcopy(twoParent[1].hiddenLayer[x]) )
-    newoutput.weights.append(twoParent[1].outputLayer.weights[x])
-  #now truncate so not too huge....
-  if len(newhidden) > 21:
-    newhidden = newhidden[0:20]
+  #choose whether to crossover
+  crossover = random.random()
+  if crossover <0.5:
+   newinput = copy.deepcopy(twoParent[0].inputLayer) # just keep a good parent
+   newhidden = copy.deepcopy(twoParent[0].hiddenLayer)
+   newoutput = copy.deepcopy(twoParent[0].outputLayer)
+  else:
+
+    #choose which parent to get input details from
+    parentInputNode = random.random()
+    if(parentInputNode <= 0.5):
+      newinput.weight = twoParent[0].inputLayer.weight
+      newinput.bias = twoParent[0].inputLayer.bias
+    else:
+      newinput.weight = twoParent[1].inputLayer.weight
+      newinput.bias = twoParent[1].inputLayer.bias 
+    #take half of hidden from par0, half from par1
+    #newhidden = []
+    lenP0 = len(twoParent[0].hiddenLayer)
+    lenP1 = len(twoParent[1].hiddenLayer)
+    #newoutput = Node()
+    for x in range(int(lenP0/2)):
+      newhidden.append(copy.deepcopy(twoParent[0].hiddenLayer[x]) )
+      newoutput.weights.append(twoParent[0].outputLayer.weights[x])
+    for x in range(int(lenP1/2)):
+      newhidden.append( copy.deepcopy(twoParent[1].hiddenLayer[x]) )
+      newoutput.weights.append(twoParent[1].outputLayer.weights[x])
+    #now truncate so not too huge....
+    if len(newhidden) > (hiddenMax+1):
+      newhidden = newhidden[0:hiddenMax]
 
   #take output based on previous prob
 
@@ -170,7 +181,7 @@ def tournament():
 
   #Now do random mutation
   doMutationInput = random.random()
-  if(doMutationInput <0.3):
+  if(doMutationInput < 0.3):
     newinput.weight = random.uniform(0.0,weightMax)
     newinput.bias = random.uniform(0.0,weightMax) #https://stackoverflow.com/questions/6088077/how-to-get-a-random-number-between-a-float-range
   doMutationHidden = random.random()
@@ -196,7 +207,7 @@ def tournament():
 #print(hiddenLayer[1].id)
 def constructFFANN():
  inputLayer = Node() 
- numberOfHidden = random.randint(2,hiddenMax)
+ numberOfHidden = random.randint(hiddenMin,hiddenMax)
  #print("number of hidden: "+str(numberOfHidden))
 
  #construct hidden layer
