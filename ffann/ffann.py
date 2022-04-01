@@ -4,8 +4,10 @@
 #https://en.wikipedia.org/wiki/Tournament_selection
 #https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)
 
-#run as python3 ffann.py datafilename1 filename2 filename3 intended result
-# e.g. python3 ffan.py Accel15psi.data Accel20psi.data Accel25psi.data 20000.0
+#Before running, ensure you edit script to include the data filenames you want to be processed
+#... they are just a few lines down from here....
+#run as python3 ffann.py intended_result
+# e.g. python3 ffan.py 20000.0
 
 import math
 import random
@@ -14,6 +16,8 @@ import copy  #https://medium.com/python-features/cloning-objects-in-python-begin
 import statistics
 from datetime import datetime
 
+global filenamesList
+filenamesList = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
 global popsize 
 popsize = 400
 global hiddenMax
@@ -48,8 +52,8 @@ def sigmoid(value):
 def relu(value):
   return max(0.0,value)
 
-def process(filename1,filename2,filename3,expectedResult,member):
- for name in [filename1,filename2,filename3]:
+def process(filenamesList,expectedResult,member):
+ for name in filenamesList:
    filehold = open(name,"r")
    Lines = filehold.readlines()
    for x in Lines:
@@ -254,7 +258,7 @@ for t in range(100): # two loops of this algorithm
     #print("lenght of hidden layer is "+str(len(hiddenLayer)))
     print("just about to process member "+str(x))    
     #Run through each line of data in datafile
-    process(sys.argv[1], sys.argv[2], sys.argv[3], intendedResult, x) # filename, func populates result list
+    process(filenamesList, intendedResult, x) # filename, func populates result list
 
     #Get datafile result as LeastMeanSquared
     lmssum = sum(lmsResult)
