@@ -54,6 +54,7 @@ def relu(value):
 
 def process(filenamesList,expectedResult,member):
  for name in filenamesList:
+   #print('processing datafile '+name)
    filehold = open(name,"r")
    Lines = filehold.readlines()
    for x in Lines:
@@ -241,7 +242,7 @@ result = []
 global lmsResult
 lmsResult = []
 
-intendedResult = sys.argv[4]
+intendedResult = sys.argv[1]
 
 global bestlms 
 bestlms= 1000000000000000000.0 # assigning initial high value
@@ -256,7 +257,7 @@ for t in range(100): # two loops of this algorithm
   for x in range(popsize): #e.g. for each member FFANN, process it
 
     #print("lenght of hidden layer is "+str(len(hiddenLayer)))
-    print("just about to process member "+str(x))    
+    print("cycle is "+str(t)+", just about to process member "+str(x))    
     #Run through each line of data in datafile
     process(filenamesList, intendedResult, x) # filename, func populates result list
 
