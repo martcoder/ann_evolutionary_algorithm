@@ -173,11 +173,11 @@ def tournament():
     if len(newhidden) > (hiddenMax+1):
       newhidden = newhidden[0:hiddenMax]
 
-  #take output bias based on previous prob
-  if(parentInputNode <= 0.5):
-    newoutput.bias = twoParent[0].outputLayer.bias
-  else:
-    newoutput.bias = twoParent[1].outputLayer.bias
+    #take output bias based on previous prob
+    if(parentInputNode <= 0.5):
+      newoutput.bias = twoParent[0].outputLayer.bias
+    else:
+      newoutput.bias = twoParent[1].outputLayer.bias
   
 
   #Now do random mutation
