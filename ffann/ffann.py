@@ -21,6 +21,8 @@ hiddenMax = 40
 hiddenMin = 5
 global weightMax
 weightMax = 2.0
+global elitism
+elitism = 20
 
 class Individual:
   def __init__(self,input,hidden,output):
@@ -142,11 +144,11 @@ def tournament():
   newoutput = Node()
   #choose whether to crossover
   crossover = random.random()
-  if crossover <0.5:
+  if crossover > 0.75:
    newinput = copy.deepcopy(twoParent[0].inputLayer) # just keep a good parent
    newhidden = copy.deepcopy(twoParent[0].hiddenLayer)
    newoutput = copy.deepcopy(twoParent[0].outputLayer)
-  else:
+  else: #if crossover <= 0.75 then DO CROSSOVER, so the majority of the time
 
     #choose which parent to get input details from
     parentInputNode = random.random()
@@ -171,12 +173,11 @@ def tournament():
     if len(newhidden) > (hiddenMax+1):
       newhidden = newhidden[0:hiddenMax]
 
-  #take output based on previous prob
-
-  #if(parentInputNode <= 0.5):
-  #0  newoutput = copy.deepcopy(twoParent[0].outputLayer)
-  #else:
-  #  newoutput = copy.deepcopy(twoParent[1].outputLayer)
+  #take output bias based on previous prob
+  if(parentInputNode <= 0.5):
+    newoutput.bias = twoParent[0].bias
+  else:
+    newoutput.bias = twoParent[1].bias
   
 
   #Now do random mutation
@@ -290,7 +291,7 @@ for t in range(100): # two loops of this algorithm
   countElite = 0
   for x in range(popsize):
     print("about to add memer to newpop")
-    if countElite < 5:
+    if countElite < elitism: #elitism num defined at beginning of script
       addElite()
       countElite += 1
     else:
