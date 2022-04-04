@@ -22,7 +22,7 @@ global popsize
 popsize = 400
 global hiddenMax
 hiddenMax = 50
-hiddenMin = 10
+hiddenMin = 7
 global weightMax
 weightMax = 2.0
 global elitism
@@ -149,11 +149,11 @@ def tournament():
   newoutput = Node()
   #choose whether to crossover
   crossover = random.random()
-  if crossover > 0.75:
+  if crossover > 0.9:
    newinput = copy.deepcopy(twoParent[0].inputLayer) # just keep a good parent
    newhidden = copy.deepcopy(twoParent[0].hiddenLayer)
    newoutput = copy.deepcopy(twoParent[0].outputLayer)
-  else: #if crossover <= 0.75 then DO CROSSOVER, so the majority of the time
+  else: #if crossover <= 0.9 then DO CROSSOVER, so the majority of the time
 
     #choose which parent to get input details from
     parentInputNode = random.random()
