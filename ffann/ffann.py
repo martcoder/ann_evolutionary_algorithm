@@ -21,8 +21,8 @@ filenamesList = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
 global popsize 
 popsize = 400
 global hiddenMax
-hiddenMax = 50
-hiddenMin = 7
+hiddenMax = 20
+hiddenMin = 5
 global weightMax
 weightMax = 2.0
 global elitism
