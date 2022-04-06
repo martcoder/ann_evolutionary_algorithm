@@ -17,7 +17,10 @@ import statistics
 from datetime import datetime
 
 global filenamesList
-filenamesList = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
+filenamesListLow = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
+filenamesListMiddle = ['Accel30psi','Accel35psi','Accel40psi','Accel45psi']
+filenamesListHigh = ['Accel50psi','Accel55psi','Accel60psi']
+filenamesList = [filenamesListLow,filenamesListMiddle,filenamesListHigh]
 global popsize 
 popsize = 400
 global hiddenMax
@@ -53,7 +56,9 @@ def relu(value):
   return max(0.0,value)
 
 def process(filenamesList,expectedResult,member):
- for name in filenamesList:
+ int r = 0
+ for filenamearray in filenamesList:
+  for name in filenamearray:
    #print('processing datafile '+name)
    filehold = open(name,"r")
    Lines = filehold.readlines()
@@ -78,9 +83,19 @@ def process(filenamesList,expectedResult,member):
      oldpopulation[member].outputLayer.output = relu(oldpopulation[member].outputLayer.output)
      result.append( oldpopulation[member].outputLayer.output )
      #print("result is "+str(outputLayer.output))
+     if r == 0:
+      expectedResult = 20000.0
+     elif r == 1:
+      expectedResult = 40000.0
+     elif r == 2:
+      expectedResult = 60000.0
+     else:
+      pass
      lms = (float(expectedResult) - oldpopulation[member].outputLayer.output )
      lms = lms * lms
      lmsResult.append( lms )
+  r += 1 #increment which expected result needs using
+
  oldpopulation[member].inputLayer.lms = sum(lmsResult)
 
 global bestInputLayer
@@ -168,21 +183,28 @@ def tournament():
     lenP0 = len(twoParent[0].hiddenLayer)
     lenP1 = len(twoParent[1].hiddenLayer)
     #newoutput = Node()
-    for x in range(int(math.ceil(lenP0/2))):
+    for x in range(int(math.ceil(lenP0/2))): #cycle through 1/2 parent
       newhidden.append(copy.deepcopy(twoParent[0].hiddenLayer[x]) )
-      newoutput.weights.append(twoParent[0].outputLayer.weights[x])
-    for x in range(int(math.ceil(lenP1/2))):
+      newoutput.weights.append(twoParent[0].outputLayer.weights[x] )
+      #for w in range(len(twoParent[0].outputLayer)): #cycle through 3 outputs
+      #  newoutputLayer[w].weights.append( twoParent[0].outputLayer[w].weights[x] )
+    for x in range(int(math.ceil(lenP1/2))): #cycle through 1/2 parent
       newhidden.append( copy.deepcopy(twoParent[1].hiddenLayer[x]) )
-      newoutput.weights.append(twoParent[1].outputLayer.weights[x])
+      newoutput.weights.append( twoParent[1].outputLayer.weights[x]  )
+      #for w in range(len(twoParent[1].outputLayer)): #cycle through 3 outputs
+      #  newoutputLayer[w].weights.append(twoParent[0].outputLayer[w].weights[x])
+
     #now truncate so not too huge....
     if len(newhidden) > (hiddenMax+1):
-      newhidden = newhidden[0:hiddenMax]
-
+       newhidden = newhidden[0:hiddenMax]
+    #for x in range(len(newoutput)):
+    if len(newoutput.weights) > (hiddenMax+1):
+       newoutput.weights = newoutput.weights[0:hiddenMax] 
     #take output bias based on previous prob
     if(parentInputNode <= 0.5):
-      newoutput.bias = twoParent[0].outputLayer.bias
+       newoutput.bias = twoParent[0].outputLayer.bias
     else:
-      newoutput.bias = twoParent[1].outputLayer.bias
+       newoutput.bias = twoParent[1].outputLayer.bias
   
 
   #Now do random mutation
@@ -196,10 +218,12 @@ def tournament():
       x.weight = random.uniform(0.0,weightMax)
       x.bias = random.uniform(0.0,weightMax)
   doMutationOutput = random.random()
-  weightChoice = random.randint(0,len(newoutput.weights)-1)
+  #choose a random weight index
+  weightChoice = random.randint(0,len(newoutput.weights)-1) #arbitrary choice of first output node for weights length
   if doMutationOutput < 0.3:
-    newoutput.weights[weightChoice] = random.uniform(0.0,weightMax)
-    newoutput.bias = random.uniform(0.0,weightMax)
+    #for x in newoutput:
+      newoutput.weights[weightChoice] = random.uniform(0.0,weightMax) #mutate that chosen weight
+      newoutput.bias = random.uniform(0.0,weightMax) #also mutate bias
 
 
 
@@ -223,11 +247,15 @@ def constructFFANN():
    hiddenLayer[x].output = 0.0
 
  #print("length of hidden layer inside constructFFANN :"+str(len(hiddenLayer)))
- outputLayer = Node()
+ outputLayer = Node() #[] #3 nodes, one per expected output
+ #outputLayer.append( Node() )
+ #outputLayer.append( Node() )
+ #outputLayer.append( Node() )
  #now create output node weights, the same amount as there are hidden nodes
- outputLayer.weights = []
+ #for o in outputLayer:
+ # o.weights = []
  for x in range( len(hiddenLayer) ):
-   outputLayer.weights.append( random.random() ) #initialise weight randomly
+    outputLayer.weights.append( random.random() ) #initialise weights randomly
 
  #Now add to the current population list
  
@@ -315,8 +343,9 @@ for t in range(100): # two loops of this algorithm
   writer.write("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    writer.write("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
+  #for m in bestOutputLayer:
   for x in bestOutputLayer.weights:
-    writer.write("Best output layer weight is "+str(x)+"\n ")
+     writer.write("Best output layer weight is "+str(x)+"\n ")
   writer.write("output bias is "+str(bestOutputLayer.bias))
   writer.close()
 
@@ -324,6 +353,8 @@ for t in range(100): # two loops of this algorithm
   print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    print("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
+  
+  #for e in bestOutputLayer:
   for x in bestOutputLayer.weights:
     print("Best output layer weight is "+str(x)+"\n ")
   print("output bias is "+str(bestOutputLayer.bias))
