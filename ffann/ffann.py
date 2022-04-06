@@ -86,14 +86,14 @@ def process(filenamesList,expectedResult,member):
      result.append( oldpopulation[member].outputLayer.output )
      #print("result is "+str(outputLayer.output))
      if r == 0:
-      expectedResult = 20000.0
+      expectedResult = 200000.0
       resultLOW.append( oldpopulation[member].outputLayer.output )
      elif r == 1:
-      expectedResult = 40000.0
+      expectedResult = 400000.0
       resultMED.append( oldpopulation[member].outputLayer.output )
 
      elif r == 2:
-      expectedResult = 60000.0
+      expectedResult = 600000.0
       resultHIGH.append( oldpopulation[member].outputLayer.output  )
      else:
       pass
