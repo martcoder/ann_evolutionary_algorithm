@@ -46,7 +46,9 @@ class Node:
     self.weights = []
     self.output = 0.0
     self.lms = 999999999999999.0
-    self.meanOutput = 100.0
+    self.meanOutputLOW = 100.0
+    self.meanOutputMED = 100.0
+    self.meanOutputHIGH = 100.0
 
 #Activation functions: https://www.geeksforgeeks.org/activation-functions-neural-networks/
 def sigmoid(value):
@@ -85,10 +87,14 @@ def process(filenamesList,expectedResult,member):
      #print("result is "+str(outputLayer.output))
      if r == 0:
       expectedResult = 20000.0
+      resultLOW.append( oldpopulation[member].outputLayer.output )
      elif r == 1:
       expectedResult = 40000.0
+      resultMED.append( oldpopulation[member].outputLayer.output )
+
      elif r == 2:
       expectedResult = 60000.0
+      resultHIGH.append( oldpopulation[member].outputLayer.output  )
      else:
       pass
      lms = (float(expectedResult) - oldpopulation[member].outputLayer.output )
@@ -267,6 +273,12 @@ def constructFFANN():
 
 global result 
 result = []
+global resultLOW
+resultLOW = []
+global resultMED
+resultMED = []
+global resultHIGH
+resultHIGH = []
 global lmsResult
 lmsResult = []
 
@@ -296,8 +308,15 @@ for t in range(100): # two loops of this algorithm
       print("Found new best lms of "+str(lmssum))
       meanResult = statistics.mean(result)
       print("And mean output was "+str(meanResult) )
+      meanLOW = statistics.mean(resultLOW)
+      meanMED = statistics.mean(resultMED)
+      meanHIGH = statistics.mean(resultHIGH)
+      print("mean LOW was "+str(meanLOW)+", mean MED was "+str(meanMED)+", mean HIGH was "+str(meanHIGH))
       bestInputLayer = copy.deepcopy(oldpopulation[x].inputLayer)
       bestInputLayer.meanOutput = meanResult
+      bestInputLayer.meanOutputLOW = meanLOW
+      bestInputLayer.meanOutputMED = meanMED
+      bestInputLayer.meanOutputHIGH = meanHIGH
       #print("len of hidden layer is "+str(len(hiddenLayer)))
       bestHiddenLayer = copy.deepcopy(oldpopulation[x].hiddenLayer)
       bestOutputLayer = copy.deepcopy(oldpopulation[x].outputLayer)
@@ -312,6 +331,9 @@ for t in range(100): # two loops of this algorithm
       bestlms = lmssum
     lmsResult = [] # empty this ready for the next FFANN
     result = []
+    resultMED = []
+    resultLOW = []
+    resultHIGH = []
     #lmssum = 0.0
     #Now make new ffann....cleaning up the previous one
     inputLayer = Node()
@@ -339,7 +361,7 @@ for t in range(100): # two loops of this algorithm
   print("current population contains "+str(len(oldpopulation))+" individuals\n")
   
   writer = open(str(datetime.now())+"_"+str(intendedResult)+".log","a")
-  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput)+" is:\n")
+  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput)+", and meanLOW of "+str(bestInputLayer.meanOutputLOW)+", and meanMED: "+str(bestInputLayer.meanOutputMED)+", and meanHIGH: "+str(bestInputLayer.meanOutputHIGH)+" is:\n")
   writer.write("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    writer.write("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
@@ -349,7 +371,7 @@ for t in range(100): # two loops of this algorithm
   writer.write("output bias is "+str(bestOutputLayer.bias))
   writer.close()
 
-  print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput) +" is:\n")
+  print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput) +", and meanLOW of "+str(bestInputLayer.meanOutputLOW)+", and meanMED: "+str(bestInputLayer.meanOutputMED)+", and meanHIGH: "+str(bestInputLayer.meanOutputHIGH)+" is:\n")
   print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    print("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
