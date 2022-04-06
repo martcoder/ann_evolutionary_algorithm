@@ -18,8 +18,8 @@ from datetime import datetime
 
 global filenamesList
 filenamesListLow = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
-filenamesListMiddle = ['Accel30psi','Accel35psi','Accel40psi','Accel45psi']
-filenamesListHigh = ['Accel50psi','Accel55psi','Accel60psi']
+filenamesListMiddle = ['Accel30psi.data','Accel35psi.data','Accel40psi.data','Accel45psi.data']
+filenamesListHigh = ['Accel50psi.data','Accel55psi.data','Accel60psi.data']
 filenamesList = [filenamesListLow,filenamesListMiddle,filenamesListHigh]
 global popsize 
 popsize = 400
@@ -56,7 +56,7 @@ def relu(value):
   return max(0.0,value)
 
 def process(filenamesList,expectedResult,member):
- int r = 0
+ r = 0 #for choosing the expected result
  for filenamearray in filenamesList:
   for name in filenamearray:
    #print('processing datafile '+name)
