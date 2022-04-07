@@ -294,8 +294,8 @@ bestlms= 1000000000000000000.0 # assigning initial high value
 for x in range(popsize):
   constructFFANN() # create initial population
 
-for t in range(100): # two loops of this algorithm
-  #Loop round creating a new FFANN each time to find the best one :)
+for t in range(100): # number of cycles of this evolutionary algorithm
+  #Process the input data through each population member
   for x in range(popsize): #e.g. for each member FFANN, process it
 
     #print("lenght of hidden layer is "+str(len(hiddenLayer)))
@@ -306,7 +306,7 @@ for t in range(100): # two loops of this algorithm
     #Get datafile result as LeastMeanSquared
     lmssum = sum(lmsResult)
     #print("lmssum is "+str(lmssum))
-    if lmssum < bestlms: #keep this ffann as the best so far....
+    if lmssum < bestlms: #Set this ffann as the best so far....
       print("Found new best lms of "+str(lmssum))
       meanResult = statistics.mean(result)
       print("And mean output was "+str(meanResult) )
@@ -345,6 +345,7 @@ for t in range(100): # two loops of this algorithm
     #  constructFFANN()
   
   #Now CREATE NEW POPULATION
+  #Firstly do elitism
   countElite = 0
   for x in range(popsize):
     print("about to add memer to newpop")
