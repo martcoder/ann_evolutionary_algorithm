@@ -22,12 +22,14 @@ global filenamesList
 global filenamesListLow
 global filenamesListMiddle
 global filenamesListHigh
-
+global chosenSensor
 if sys.argv[1] == 'accel':
+  chosenSensor = 'accel'
   filenamesListLow = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
   filenamesListMiddle = ['Accel30psi.data','Accel35psi.data','Accel40psi.data','Accel45psi.data']
   filenamesListHigh = ['Accel50psi.data','Accel55psi.data','Accel60psi.data']
 elif sys.argv[1] == 'lidar':
+  chosenSensor = 'lidar'
   filenamesListLow = ['Lidar15psi.data','Lidar20psi.data','Lidar25psi.data']
   filenamesListMiddle = ['Lidar30psi.data','Lidar35psi.data','Lidar40psi.data','Lidar45psi.data']
   filenamesListHigh = ['Lidar50psi.data','Lidar55psi.data','Lidar60psi.data']
@@ -82,7 +84,11 @@ def process(filenamesList,expectedResult,member):
    for x in Lines:
      splitLine = x.split(',')
      value = splitLine[0]
-     inputLayer.input = float(value)
+     floatval = float(value)
+     if chosenSensor == 'lidar':
+       if (floatval) < 400 or (floatval > 650): #filter outliers
+          floatval = 500.0 #Remove outlier and just use regular value
+     inputLayer.input = floatval
 
      #processing input node
      oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.input * oldpopulation[member].inputLayer.weight # multiply input by weight
