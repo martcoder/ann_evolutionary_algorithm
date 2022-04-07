@@ -8,6 +8,8 @@
 #... they are just a few lines down from here....
 #run as python3 ffann.py intended_result
 # e.g. python3 ffan.py 20000.0
+#EDIT: the intended_result now doesnt affect anything as the expected results are now hard-coded
+#... into the process function! So if you want to change them they needed editing there
 
 import math
 import random
