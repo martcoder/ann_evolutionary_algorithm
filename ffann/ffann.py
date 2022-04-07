@@ -6,9 +6,9 @@
 
 #Before running, ensure you edit script to include the data filenames you want to be processed
 #... they are just a few lines down from here....
-#run as python3 ffann.py intended_result
-# e.g. python3 ffan.py 20000.0
-#EDIT: the intended_result now doesnt affect anything as the expected results are now hard-coded
+#run as python3 ffann.py accel | lidar
+# e.g. python3 ffan.py accel
+#EDIT: The expected results are now hard-coded
 #... into the process function! So if you want to change them they needed editing there
 
 import math
@@ -19,9 +19,22 @@ import statistics
 from datetime import datetime
 
 global filenamesList
-filenamesListLow = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
-filenamesListMiddle = ['Accel30psi.data','Accel35psi.data','Accel40psi.data','Accel45psi.data']
-filenamesListHigh = ['Accel50psi.data','Accel55psi.data','Accel60psi.data']
+global filenamesListLow
+global filenamesListMiddle
+global filenamesListHigh
+
+if sys.argv[1] == 'accel':
+  filenamesListLow = ['Accel15psi.data','Accel20psi.data','Accel25psi.data']
+  filenamesListMiddle = ['Accel30psi.data','Accel35psi.data','Accel40psi.data','Accel45psi.data']
+  filenamesListHigh = ['Accel50psi.data','Accel55psi.data','Accel60psi.data']
+elif sys.argv[1] == 'lidar':
+  filenamesListLow = ['Lidar15psi.data','Lidar20psi.data','Lidar25psi.data']
+  filenamesListMiddle = ['Lidar30psi.data','Lidar35psi.data','Lidar40psi.data','Lidar45psi.data']
+  filenamesListHigh = ['Lidar50psi.data','Lidar55psi.data','Lidar60psi.data']
+else:
+  print('You need to specify accel or lidar as the argument when running this script')
+  exit()
+
 filenamesList = [filenamesListLow,filenamesListMiddle,filenamesListHigh]
 global popsize 
 popsize = 400
