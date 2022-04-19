@@ -99,6 +99,7 @@ def process(filenamesList,expectedResult,member):
        h.output = h.output + h.bias
        h.output = relu(h.output)
      #now process the output node
+     oldpopulation[member].outputLayer.output = 0.0
      for h in range(len(oldpopulation[member].hiddenLayer)):
        #print("member number "+str(member)+" and h number "+str(h)+" and popsize is "+str(len(oldpopulation))+" and hidden len is "+str(len(oldpopulation[member].hiddenLayer))+" and weights len is "+str(len(oldpopulation[member].outputLayer.weights )))
        oldpopulation[member].outputLayer.output += oldpopulation[member].hiddenLayer[h].output * oldpopulation[member].outputLayer.weights[h]
