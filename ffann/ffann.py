@@ -86,7 +86,7 @@ def process(filenamesList,expectedResult,member):
      value = splitLine[0]
      floatval = float(value)
      if chosenSensor == 'lidar':
-       if (floatval) < 400 or (floatval > 650): #filter outliers
+       if (floatval) < 400.0 or (floatval > 650.0): #filter outliers
           floatval = 500.0 #Remove outlier and just use regular value
      inputLayer.input = floatval
 
@@ -108,14 +108,14 @@ def process(filenamesList,expectedResult,member):
      result.append( oldpopulation[member].outputLayer.output )
      #print("result is "+str(outputLayer.output))
      if r == 0:
-      expectedResult = 200000.0
+      expectedResult = 20.0
       resultLOW.append( oldpopulation[member].outputLayer.output )
      elif r == 1:
-      expectedResult = 400000.0
+      expectedResult = 40.0
       resultMED.append( oldpopulation[member].outputLayer.output )
 
      elif r == 2:
-      expectedResult = 600000.0
+      expectedResult = 60.0
       resultHIGH.append( oldpopulation[member].outputLayer.output  )
      else:
       pass
