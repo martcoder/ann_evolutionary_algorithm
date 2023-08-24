@@ -42,8 +42,10 @@ for t in range(100): # number of cycles of this evolutionary algorithm
     #lmssum = 0.0
     #Now make new ffann....cleaning up the previous one
     inputLayer = Node()
+    hiddenLayer = []
     hiddenLayer.clear()
-    outputLayer = Node()
+    outputLayer = []
+    outputLayer.clear()
 
   #Now CREATE NEW POPULATION
   #Firstly do elitism
@@ -65,25 +67,30 @@ for t in range(100): # number of cycles of this evolutionary algorithm
   print("current population contains "+str(len(oldpopulation))+" individuals\n")
 
   writer = open(str(datetime.now())+"_"+str(intendedResult)+".log","a")
-  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput)+", and meanLOW of "+str(bestInputLayer.meanOutputLOW)+", and meanMED: "+str(bestInputLayer.meanOutputMED)+", and meanHIGH: "+str(bestInputLayer.meanOutputHIGH)+" is:\n")
+  writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
 
   writer.write("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    writer.write("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
   #for m in bestOutputLayer:
-  for x in bestOutputLayer.weights:
-     writer.write("Best output layer weight is "+str(x)+"\n ")
-  writer.write("output bias is "+str(bestOutputLayer.bias))
+  for x in range(3):
+    for w in bestOutputLayer[x].weights:
+      writer.write("Best output layer Node "+str(x)+" weight: "+str(w)+"\n ")
+    writer.write("output bias for node "+str(x)+" is "+str(bestOutputLayer[x].bias))
   writer.close()
 
-  print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" and mean output of: "+str(bestInputLayer.meanOutput) +", and meanLOW of "+str(bestInputLayer.meanOutputLOW)+", and meanMED: "+str(bestInputLayer.meanOutputMED)+", and meanHIGH: "+str(bestInputLayer.meanOutputHIGH)+" is:\n")
+  print("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
 
   print("Input weight of "+str(bestInputLayer.weight)+" and bias is "+str(bestInputLayer.bias)+"\n")
   for x in bestHiddenLayer:
    print("Hidden layer node, weight is "+str(x.weight)+" and bias is "+str(x.bias)+"\n")
 
   #for e in bestOutputLayer:
-  for x in bestOutputLayer.weights:
-    print("Best output layer weight is "+str(x)+"\n ")
-  print("output bias is "+str(bestOutputLayer.bias))
+  i = 0
+  for x in bestOutputLayer:
+    for w in x.weights:
+      print("Best output layer Node "+str(i)+" weight is "+str(w)+"\n ")
+    i = i + 1
+    print("output bias is "+str(x.bias))
+
 

@@ -86,14 +86,14 @@ bestlms= 1000000000000000000.0 # assigning initial high value
 
 
 global popsize 
-popsize = 40
+popsize = 5
 global hiddenMax
 hiddenMax = 20
 hiddenMin = 5
 global weightMax
 weightMax = 2.0
 global elitism
-elitism = 20
+elitism = max(1, math.ceil( popsize / 10.0 ) )
 
 
 
@@ -285,7 +285,11 @@ def tournament():
     #newhidden = []
     lenP0 = len(twoParent[0].hiddenLayer)
     lenP1 = len(twoParent[1].hiddenLayer)
-    #newoutput = Node()
+
+    newoutput.append( Node() )
+    newoutput.append( Node() )
+    newoutput.append( Node() )
+
     for x in range(int(math.ceil(lenP0/2))): #cycle through 1/2 parent
       newhidden.append(copy.deepcopy(twoParent[0].hiddenLayer[x]) )
     newoutput[0].weights = twoParent[0].outputLayer[0].weights 
@@ -299,11 +303,13 @@ def tournament():
       #  newoutputLayer[w].weights.append(twoParent[0].outputLayer[w].weights[x])
 
     #now truncate so not too huge....
+
     if len(newhidden) > (hiddenMax+1):
        newhidden = newhidden[0:hiddenMax]
-    #for x in range(len(newoutput)):
-    if len(newoutput.weights) > (hiddenMax+1):
-       newoutput.weights = newoutput.weights[0:hiddenMax] 
+    print("newhidden length is "+str(len(newhidden)))
+    for x in range(len(newoutput)):
+      if len(newoutput[x].weights) > (hiddenMax+1):
+         newoutput[x].weights = newoutput[x].weights[0:hiddenMax] 
     #take output bias based on previous prob
     if(parentInputNode <= 0.5):
        for x in range(3):
@@ -325,7 +331,8 @@ def tournament():
       x.bias = random.uniform(0.0,weightMax)
   doMutationOutput = random.random()
   #choose a random weight index
-  weightChoice = random.randint(0,len(newoutput.weights)-1) #arbitrary choice of first output node for weights length
+  weightChoice = random.randint(0,len(newoutput[0].weights)-1) #arbitrary choice of first output node for weights length
+  print("weight number for output node is "+str(weightChoice))
   if doMutationOutput < 0.3:
     for x in range(len(newoutput)):
       newoutput[x].weights[weightChoice] = random.uniform(0.0,weightMax) #mutate that chosen weight
