@@ -17,6 +17,11 @@ import sys
 import statistics
 from datetime import datetime
 
+class Population:
+  def __init__(self):
+   self.oldpopulation = []
+   self.newpopulation = []
+
 class Individual:
   def __init__(self,input,hidden,output):
     self.inputLayer = copy.deepcopy(input)
@@ -40,6 +45,12 @@ class Node:
     self.meanOutputMED = 100.0
     self.meanOutputHIGH = 100.0
 
+global global_population
+global_population = Population()
+#global oldpopulation
+#oldpopulation = []
+#global newpopulation
+#newpopulation = []
 
 global filenamesList
 global filenamesListLow
@@ -86,7 +97,7 @@ bestlms= 1000000000000000000.0 # assigning initial high value
 
 
 global popsize 
-popsize = 5
+popsize = 4
 global hiddenMax
 hiddenMax = 20
 hiddenMin = 5
@@ -122,6 +133,7 @@ def relu(value):
   return max(0.0,abs(value)) #accel data has plenty of negative values, so using absolute
 
 def process(filenamesList,expectedResult,member):
+ global global_population #need this global keyword to access global object !!!
  r = 0 #for choosing the expected result, will increment at the end of the following for loop
  for filenamearray in filenamesList:
   if r == 0:
@@ -142,29 +154,34 @@ def process(filenamesList,expectedResult,member):
      if chosenSensor == 'lidar':
        if (floatval) < 400.0 or (floatval > 650.0): #filter outliers
           floatval = 500.0 #Remove outlier and just use regular value
-     inputLayer.input = floatval
+     #print("Population member number is "+str(member))
+     #print("Population input weight is "+str(oldpopulation[member].inputLayer.weight))
+     #print("Input value stored in this member is currently "+str(oldpopulation[member].inputLayer.input) )
+     global_population.oldpopulation[member].inputLayer.input = floatval
 
      #processing input node
-     oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.input * oldpopulation[member].inputLayer.weight # multiply input by weight
-     oldpopulation[member].inputLayer.output = oldpopulation[member].inputLayer.output + oldpopulation[member].inputLayer.bias # add the bias into the mix
-     oldpopulation[member].inputLayer.output = relu(oldpopulation[member].inputLayer.output) # run through activation func
-     for h in oldpopulation[member].hiddenLayer:
-       h.output = oldpopulation[member].inputLayer.output * h.weight
+     global_population.oldpopulation[member].inputLayer.output = global_population.oldpopulation[member].inputLayer.input * global_population.oldpopulation[member].inputLayer.weight # multiply input by weight
+     global_population.oldpopulation[member].inputLayer.output = global_population.oldpopulation[member].inputLayer.output + global_population.oldpopulation[member].inputLayer.bias # add the bias into the mix
+     global_population.oldpopulation[member].inputLayer.output = relu(global_population.oldpopulation[member].inputLayer.output) # run through activation func
+     for h in global_population.oldpopulation[member].hiddenLayer:
+       h.output = global_population.oldpopulation[member].inputLayer.output * h.weight
        h.output = h.output + h.bias
        h.output = relu(h.output)
      #now process the output node
      #oldpopulation[member].outputLayer.output = 0.0
      normalisingList = []
-     for oi in range(len(oldpopulation[member].outputLayer)):
-        oldpopulation[member].outputLayer[oi].output = 0.0 #first set to zero for fresh numbers
-        for h in range(len(oldpopulation[member].hiddenLayer)):
+     for oi in range(len(global_population.oldpopulation[member].outputLayer)):
+        global_population.oldpopulation[member].outputLayer[oi].output = 0.0 #first set to zero for fresh numbers
+        for h in range(len(global_population.oldpopulation[member].hiddenLayer)):
 	  #print("member number "+str(member)+" and h number "+str(h)+" and popsize is "+str(len(oldpopulation))+" and hidden len is "+str(len(oldpopulation[member].hiddenLayer))+" and weights len is "+str(len(oldpopulation[member].outputLayer.weights )))
-           oldpopulation[member].outputLayer[oi].output += oldpopulation[member].hiddenLayer[h].output * oldpopulation[member].outputLayer[oi].weights[h]
-        oldpopulation[member].outputLayer[oi].output += oldpopulation[member].outputLayer[oi].bias
-        oldpopulation[member].outputLayer[oi].output = relu(oldpopulation[member].outputLayer[oi].output)
-        normalisingList.append( oldpopulation[member].outputLayer[oi].output ) 
+           global_population.oldpopulation[member].outputLayer[oi].output += global_population.oldpopulation[member].hiddenLayer[h].output * global_population.oldpopulation[member].outputLayer[oi].weights[h]
+        global_population.oldpopulation[member].outputLayer[oi].output += global_population.oldpopulation[member].outputLayer[oi].bias
+        global_population.oldpopulation[member].outputLayer[oi].output = relu(global_population.oldpopulation[member].outputLayer[oi].output)
+        #print("Final output is "+str(global_population.oldpopulation[member].outputLayer[oi].output))
+        normalisingList.append( global_population.oldpopulation[member].outputLayer[oi].output ) 
      #print("result is "+str(outputLayer.output))
      largestOutput = max(normalisingList)
+     #print("largest output is "+str(largestOutput))
      indexOfLargestOutput = normalisingList.index(max(normalisingList))
 
       #Populise a normalised version of the outputs...
@@ -215,38 +232,32 @@ def process(filenamesList,expectedResult,member):
      lmsResult.append( lms )
   r += 1 #increment which expected result needs using
  print("Member "+str(member)+" has processed low med and high data and has avg lms of "+str(statistics.mean(lmsResult)))
- oldpopulation[member].inputLayer.lms = statistics.mean(lmsResult)
-
-
-global oldpopulation
-oldpopulation = []
-global newpopulation
-newpopulation = []
+ global_population.oldpopulation[member].inputLayer.lms = statistics.mean(lmsResult)
 
 
 def addElite():
-  newpopulation.append(Individual(bestInputLayer,bestHiddenLayer,bestOutputLayer))
+  global_population.newpopulation.append(Individual(bestInputLayer,bestHiddenLayer,bestOutputLayer))
 
 
 def tournament():
   tournySet = []
   # Select 4 random individuals. 
-  indv = random.randint(0,len(oldpopulation)-1)
+  indv = random.randint(0,len(global_population.oldpopulation)-1)
   
   #print("old pop size is "+str(len(oldpopulation))+" and index chosen "+str(indv))
-  tournySet.append( oldpopulation[indv]  )
-  indv = random.randint(1,len(oldpopulation)-1)
+  tournySet.append( global_population.oldpopulation[indv]  )
+  indv = random.randint(1,len(global_population.oldpopulation)-1)
   #print("old pop size is "+str(len(oldpopulation))+" and index chosen "+str(indv))
 
-  tournySet.append( oldpopulation[indv]  )
-  indv = random.randint(1,len(oldpopulation)-1)
+  tournySet.append( global_population.oldpopulation[indv]  )
+  indv = random.randint(1,len(global_population.oldpopulation)-1)
   #print("old pop size is "+str(len(oldpopulation))+" and index chosen "+str(indv))
 
-  tournySet.append( oldpopulation[indv]  )
-  indv = random.randint(1,len(oldpopulation)-1)
+  tournySet.append( global_population.oldpopulation[indv]  )
+  indv = random.randint(1,len(global_population.oldpopulation)-1)
   #print("old pop size is "+str(len(oldpopulation))+" and index chosen "+str(indv))
 
-  tournySet.append( oldpopulation[indv]  )
+  tournySet.append( global_population.oldpopulation[indv]  )
 
   #choose 2 best to parent
   twoParent = []
@@ -331,18 +342,19 @@ def tournament():
       x.bias = random.uniform(0.0,weightMax)
   doMutationOutput = random.random()
   #choose a random weight index
-  weightChoice = random.randint(0,len(newoutput[0].weights)-1) #arbitrary choice of first output node for weights length
-  print("weight number for output node is "+str(weightChoice))
+  #weightChoice = random.randint(0,len(newoutput[0].weights)-1) #arbitrary choice of first output node for weights length
+  #print("weight number for output node is "+str(weightChoice))
   if doMutationOutput < 0.3:
     for x in range(len(newoutput)):
+      weightChoice = random.randint(0,len(newoutput[x].weights)-1)
       newoutput[x].weights[weightChoice] = random.uniform(0.0,weightMax) #mutate that chosen weight
       newoutput[x].bias = random.uniform(0.0,weightMax) #also mutate bias
 
 
 
   #Now add the newly minted individual to the new population
-  newpopulation.append(Individual(newinput,newhidden,newoutput))
-  print("new populatino size is now "+str(len(newpopulation)))
+  global_population.newpopulation.append(Individual(newinput,newhidden,newoutput))
+  print("new populatino size is in tournament now "+str(len(global_population.newpopulation)))
 
 
  #tournament selection
@@ -376,7 +388,7 @@ def constructFFANN():
 
  #Now add to the current population list
  
- oldpopulation.append(Individual(inputLayer,hiddenLayer,outputLayer))
+ global_population.oldpopulation.append(Individual(inputLayer,hiddenLayer,outputLayer))
  #print("number of hidden nodes : "+str(len(hiddenLayer)))
  inputLayer = None
  hiddenLayer = []

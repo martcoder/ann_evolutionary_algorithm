@@ -4,7 +4,7 @@ from ffann_aux import * #imports global variables, Node and Individual classes
 for x in range(popsize):
   constructFFANN() # create initial population
 
-for t in range(100): # number of cycles of this evolutionary algorithm
+for t in range(50): # number of cycles of this evolutionary algorithm
   #Process the input data through each population member
 
   for x in range(popsize): #e.g. for each member FFANN, process it
@@ -25,14 +25,14 @@ for t in range(100): # number of cycles of this evolutionary algorithm
       #meanMED = statistics.mean(resultMED)
       #meanHIGH = statistics.mean(resultHIGH)
       #print("mean LOW was "+str(meanLOW)+", mean MED was "+str(meanMED)+", mean HIGH was "+str(meanHIGH))
-      bestInputLayer = copy.deepcopy(oldpopulation[x].inputLayer)
+      bestInputLayer = copy.deepcopy(global_population.oldpopulation[x].inputLayer)
       #bestInputLayer.meanOutput = meanResult
       #bestInputLayer.meanOutputLOW = meanLOW
       #bestInputLayer.meanOutputMED = meanMED
       #bestInputLayer.meanOutputHIGH = meanHIGH
       #print("len of hidden layer is "+str(len(hiddenLayer)))
-      bestHiddenLayer = copy.deepcopy(oldpopulation[x].hiddenLayer)
-      bestOutputLayer = copy.deepcopy(oldpopulation[x].outputLayer)
+      bestHiddenLayer = copy.deepcopy(global_population.oldpopulation[x].hiddenLayer)
+      bestOutputLayer = copy.deepcopy(global_population.oldpopulation[x].outputLayer)
       bestlms = lmsavg
     lmsResult.clear()  # empty this ready for the next FFANN
     result = []
@@ -48,6 +48,8 @@ for t in range(100): # number of cycles of this evolutionary algorithm
     outputLayer.clear()
 
   #Now CREATE NEW POPULATION
+
+  global_population.newpopulation = []
   #Firstly do elitism
   countElite = 0
   for x in range(popsize):
@@ -55,16 +57,26 @@ for t in range(100): # number of cycles of this evolutionary algorithm
     if countElite < elitism: #elitism num defined at beginning of script
       addElite()
       countElite += 1
+      print("Added an elite, total elite to add is "+str(elitism))
     else:
-      if len(newpopulation) < popsize:
+      if len(global_population.newpopulation) < popsize:
         print("about to tournament")
         tournament() #to construct new population member
   countElite = 0
-  oldpopulation = []
-  oldpopulation = copy.deepcopy(newpopulation) # now copy new population to old population
-  newpopulation = []
-  #Finally print and save the best FFANN....
-  print("current population contains "+str(len(oldpopulation))+" individuals\n")
+  #oldpopulation.clear()
+  
+  global_population.oldpopulation = []
+  print("New population contains "+str(len(global_population.newpopulation))+" members")
+  print("Old pop has been cleared and contains "+str(len(global_population.oldpopulation))+" members. Now copying new to old")
+  #for i in range(len(newpopulation)):
+  global_population.oldpopulation = copy.deepcopy(global_population.newpopulation) # now copy new population to old population
+  global_population.newpopulation = [] #.clear()
+  #newpopulation.clear()
+#Finally print and save the best FFANN....
+  print("New pop copied and cleared, now has "+str(len(global_population.newpopulation))+" members. Current population (old) contains "+str(len(global_population.oldpopulation))+" individuals\n")
+
+  print("..for example oldpop first node has input weight of "+str(global_population.oldpopulation[0].inputLayer.weight) )
+  print("..and oldpop first node has input value of "+str(global_population.oldpopulation[0].inputLayer.input) )
 
   writer = open(str(datetime.now())+"_"+str(intendedResult)+".log","a")
   writer.write("The best FFANN for "+str(intendedResult)+" with an lms of "+str(bestInputLayer.lms)+" is:\n")
