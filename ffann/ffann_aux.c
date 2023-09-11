@@ -2,17 +2,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
-#https://medium.com/@b.terryjack/introduction-to-deep-learning-feed-forward-neural-networks-ffnns-a-k-a-c688d83a309d 
-#https://en.wikipedia.org/wiki/Tournament_selection
-#https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)
+//https://medium.com/@b.terryjack/introduction-to-deep-learning-feed-forward-neural-networks-ffnns-a-k-a-c688d83a309d 
+//https://en.wikipedia.org/wiki/Tournament_selection
+//https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)
 
-#Before running, ensure you edit script to include the data filenames you want to be processed
-#... they are just a few lines down from here....
-#run as python3 ffann.py accel | lidar
-# e.g. python3 ffan.py accel
-#EDIT: The expected results are now hard-coded
-#... into the process function! So if you want to change them they needed editing there
+//Before running, ensure you edit script to include the data filenames you want to be processed
+//... they are just a few lines down from here....
+//run as python3 ffann.py accel | lidar
+// e.g. python3 ffan.py accel
+//EDIT: The expected results are now hard-coded
+//... into the process function! So if you want to change them they needed editing there
 
 typedef struct node {
 	float input;
@@ -54,8 +55,7 @@ char filenamesListMiddle[4][1024]; //4 strings
 char filenamesListHigh[3][1024]; //3 strings
 int chosenSensor; //0 is for accelerometer, 1 is for lidar
 
-
-
+/*
 global result 
 result = []
 global resultLOW
@@ -72,50 +72,60 @@ global LMSresultMED
 LMSresultMED = []
 global LMSresultHIGH
 LMSresultHIGH = []
+*/
 
+float * lmsResult;
 
 intendedResult = sys.argv[1]
-global bestlms 
-bestlms= 1000000000000000000.0 # assigning initial high value
+float bestlms; 
+//bestlms= 1000000000000000000.0 # assigning initial high value
 
 
-global popsize 
-popsize = 4
-global hiddenMax
-hiddenMax = 20
-hiddenMin = 5
-outputLength = 3
-global weightMax
-weightMax = 2.0
-global elitism
-elitism = max(1, math.ceil( popsize / 10.0 ) )
+int popsize;
+//popsize = 4
+int hiddenMax;
+//hiddenMax = 20
+int hiddenMin; 
+int outputLayerLength; 
+float weightMax;
+//weightMax = 2.0
+float elitism;
+//elitism = max(1, math.ceil( popsize / 10.0 ) )
 
+//Set useful variables which define structure of ANNs and hold final best coefficients
+Node bestInputLayer;
+//bestInputLayer = Node()
+Node * bestHiddenLayer;
+//bestHiddenLayer = []
+Node * bestOutputLayer;
 
+Node inputLayer;
 
-#set useful variables which define structure of ANNs and hold final best coefficients
-global bestInputLayer
-bestInputLayer = Node()
-global bestHiddenLayer
-bestHiddenLayer = []
-global bestOutputLayer
-bestOutputLayer = []
+Node * hiddenLayer;
 
-global inputLayer
-inputLayer = Node()
-global hiddenLayer
-hiddenLayer = []
-#hiddenLayer.append(Node(2))
-#hiddenLayer.append(Node(3))
-global outputLayer
-outputLayer = []
+//hiddenLayer = []
+//#hiddenLayer.append(Node(2))
+//#hiddenLayer.append(Node(3))
+Node * outputLayer
 
-#Activation functions: https://www.geeksforgeeks.org/activation-functions-neural-networks/
-def sigmoid(value):
-  return 1.0 / (1.0 + math.exp( (-1.0) * value) )
+//Activation functions: https://www.geeksforgeeks.org/activation-functions-neural-networks/
 
-def relu(value):
-  return max(0.0,abs(value)) #accel data has plenty of negative values, so using absolute
+float sigmoid(float value){
+	return 1.0f / (1.0f + exp( (-1.0) * value) )
+}
 
+float relu(float value){
+  return abs(value) // #accel data has plenty of negative values, so using absolute
+}
+
+void process( char * filenamesList, float expectedResult, int member   ){
+	r = 0; // for choosing expected result
+	int c = 0; 
+	for(c=0; c< ; c++){
+		
+	}
+
+}
 def process(filenamesList,expectedResult,member):
  global global_population #need this global keyword to access global object !!!
  r = 0 #for choosing the expected result, will increment at the end of the following for loop

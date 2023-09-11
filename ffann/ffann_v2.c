@@ -11,8 +11,28 @@ int main(int argc, char ** argv){
 	nodeSizeMemory = ( sizeof(float) * 5 ) + ( sizeof(float) * hiddenMax );
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLength) + (sizeof(float) * 5) );
 	defaultNumberOutputNodes = 3;
+        lmsResult = (float*) malloc(sizeof(float) * popsize);
+	bestlms = 1000000000000000000.0 // assigning initial high value
+	popsize = 4;
+	hiddenMax = 20;
+	hiddenMin = 5;
+	outputLayerLength = 3;
+	weightMax = 2.0f;
+	elitism = 1 + ( popsize / 10.0 );
+	constructNode( &bestInputLayer );
+	bestHiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax );
+	bestOutputLayer = (Node *) malloc( nodeSizeMemory * outputLength );
+	constructNode( &inputLayer ); // create inputLayer node
+	
+	hiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax  );
+
+	outputLayer = (Node *) malloc( nodeSizeMemory * outputLength  );
+
 	constructPopulation(&population);
 	
+	
+
+
 	if(argv[1] == 'a'){
 		chosenSensor = 0; // 0 is for accelerometer, 1 is for lidar. 
 		strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
