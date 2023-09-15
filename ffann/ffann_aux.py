@@ -180,7 +180,11 @@ def process(filenamesList,expectedResult,member):
         #print("Final output is "+str(global_population.oldpopulation[member].outputLayer[oi].output))
         normalisingList.append( global_population.oldpopulation[member].outputLayer[oi].output ) 
      #print("result is "+str(outputLayer.output))
-     largestOutput = max(normalisingList)
+     try:
+       largestOutput = max(normalisingList)
+     except ValueError:
+       print("normalisingList seems to not be populated")
+       print("first output node value is "+str(global_population.oldpopulation[0].outputLayer[0].output)) 
      #print("largest output is "+str(largestOutput))
      indexOfLargestOutput = normalisingList.index(max(normalisingList))
 

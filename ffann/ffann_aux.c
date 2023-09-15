@@ -110,6 +110,24 @@ Node * outputLayer
 
 //Activation functions: https://www.geeksforgeeks.org/activation-functions-neural-networks/
 
+void initialiseVariables(){
+	defaultNumberOutputNodes = 3;
+	bestlms = 1000000000000000000.0 // assigning initial high value
+	popsize = 4;
+	hiddenMax = 20;
+	hiddenMin = 5;
+	outputLayerLength = 3;
+	weightMax = 2.0f;
+	//Set global variables values
+	lmsResult = (float*) malloc(sizeof(float) * popsize);
+	numCycles = 50 //global variable
+	nodeSizeMemory = ( sizeof(float) * 5 ) + ( sizeof(float) * hiddenMax );
+	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLength) + (sizeof(float) * 5) );
+	
+	elitism = 1 + ( popsize / 10.0 );
+	
+}
+
 float sigmoid(float value){
 	return 1.0f / (1.0f + exp( (-1.0) * value) )
 }
@@ -356,39 +374,58 @@ def tournament():
 
 
 
-void constructFFANN(float* oldpopulation):
- inputLayer = Node() 
- numberOfHidden = random.randint(hiddenMin,hiddenMax)
- #print("number of hidden: "+str(numberOfHidden))
+void constructFFANN(Population* populationStruct){
+	//# construct input layer, aka a single Node 
+ Node inputnode;
+ constructNode(&inputnode);
+ //# inputLayer = Node() 
+ int numberOfHidden = getRandomNumberHiddenNodesInt();
+ //#print("number of hidden: "+str(numberOfHidden))
 
- #construct hidden layer
- hiddenLayer = []
- for x in range(numberOfHidden):
-   hiddenLayer.append(Node())
- for x in range(numberOfHidden):
-   hiddenLayer[x].output = 0.0
-   hiddenLayer[x].weight = random.uniform(0.0,weightMax)
-   #hiddenLayer[x].weights.append( random.random()  ) #initialise hidden node weights, in this case just 1 weight...
+ //#construct hidden layer
+ Node* hiddenLayer;
+ hiddenLayer = (Node*) malloc( nodeSizeMemory * numberOfHidden );
+ int c = 0;
+ for(c=0; c < numberOfHidden; c++){ //#x in range(numberOfHidden):
+   Node newnode;
+   constructNode(&newnode);
+   hiddenLayer[c] = &newnode;
+ }
 
- #print("length of hidden layer inside constructFFANN :"+str(len(hiddenLayer)))
- outputLayer = [] #3 nodes, one per expected output
- outputLayer.append( Node() )
- outputLayer.append( Node() )
- outputLayer.append( Node() )
- #now create output node weights, the same amount as there are hidden nodes
- for o in outputLayer:
-   o.weights = []
-   o.weights.clear()
-   for x in range( len(hiddenLayer) ): #need same number of weights in each output node as there are hidden nodes...
-     o.weights.append( random.uniform(0.0,weightMax) ) #initialise weights randomly
+ printf("length of hidden layer inside constructFFANN : %d",numberOfHidden);
+ Node* outputLayer; // #3 nodes, one per expected output
+ outputLayer = (Node*) malloc( nodeSizeMemory * defaultNumberOutputNodes );
+ 
+	Node outputNode0;
+	Node outputNode1;
+	Node outputNode2;
+	constructNode( &outputNode0 );
+	outputLayer[c] = &outputNode0;
+	constructNode( &outputNode1 );
+	outputLayer[c] = &outputNode1;
+	constructNode( &outputNode2 );
+	outputLayer[c] = &outputNode2;
+ 
+ //#now create output node weights, the same amount as there are hidden nodes
+ for(c=0; c < defaultNumberOutputNodes; c++){
+   int d = 0;
+   for(d=0; d < numberOfHidden; d++){ 
+		 outputLayer[c]->weights[d] = 0.0f; //#clear the weights
+		 //#need same number of weights in each output node as there are hidden nodes...
+			 outputLayer[c]->weights[d] = getRandomWeightValueFloat(); #initialise weights randomly
+			}
+		}
 
  #Now add to the current population list
- 
- global_population.oldpopulation.append(Individual(inputLayer,hiddenLayer,outputLayer))
- #print("number of hidden nodes : "+str(len(hiddenLayer)))
- inputLayer = None
- hiddenLayer = []
- outputLayer = []
+ for(c=0;c<popsize;c++){
+	Individual citizen;
+	constructIndividual(&citizen);
+	citizen->inputLayer) = &inputnode;
+	citizen->hiddenLayer = hiddenLayer;
+	citizen->outputLayer = outputLayer;
+	populationStruct->oldpopulation[c] = &citizen;
+ }
+}
 
 void constructNode(Node * nodestruct){
 	nodestruct->input = 0.0f;
@@ -413,8 +450,8 @@ void constructIndividual(Individual * individualstruct){
 }
 
 void constructPopulation(Population * populationstruct){
-  populationstruct->oldpopulation = (Individual*) malloc( individualSizeMemory );
-	populationstruct->newpopulation = (Individual*) malloc( individualSizeMemory );
+  populationstruct->oldpopulation = (Individual*) malloc( individualSizeMemory * popsize );
+	populationstruct->newpopulation = (Individual*) malloc( individualSizeMemory * popsize );
 }
 
 int getRandomNumberHiddenNodesInt(){
