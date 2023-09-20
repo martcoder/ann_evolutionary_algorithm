@@ -64,9 +64,16 @@ int main(int argc, char * argv[]){
 
 	int c = 0;
 /*	for( c=0; c < numCycles; c++){*/
-	
-		 constructFFANN(&superpopulation); // # create initial population
-		 
+	for(c=0; c < 2; c++){
+		 constructFFANN(&superpopulation,c); // # create initial population
+		 //printFFANN(superpopulation.oldpopulation[c]);
+	 }
+	 
+	 for(c=0; c < 2; c++){
+		 printf("Now back in main ... to print the freshly minted citizen.....\n");
+		 printFFANN(superpopulation.oldpopulation[c]);
+	 
+	 }
 /*
 	  for t in range(50): # number of cycles of this evolutionary algorithm
 		  #Process the input data through each population member
