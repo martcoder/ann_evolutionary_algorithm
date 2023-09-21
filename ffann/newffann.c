@@ -19,16 +19,30 @@ int main(int argc, char * argv[]){
 	srand((unsigned int)time(NULL)); // needed for random number generation...
 	
 	initialiseVariables(); // 
+#ifdef TEST
+	printf("Just initialised variables\n");
+#endif
 	constructNode( &bestInputLayer );
 	bestHiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax );
 	bestOutputLayer = (Node *) malloc( nodeSizeMemory * outputLayerLength );
-	constructNode( &inputLayer ); // create inputLayer node
+	//constructNode( &inputLayer ); // create inputLayer node
 	
-	hiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax  );
+	//hiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax  );
 
-	outputLayer = (Node *) malloc( nodeSizeMemory * outputLayerLength  );
+	//outputLayer = (Node *) malloc( nodeSizeMemory * outputLayerLength  );
 
 	constructPopulation(&superpopulation);
+
+#ifdef TEST
+	printf("Just constructed population struct\n");
+#endif
+
+    addIndividualsToPopulations(&superpopulation); // also sets the pointers for all input, hidden and output nodes
+    
+#ifdef TEST
+	printf("Just added invididuals to oldpopulation\n");
+#endif    
+
 
 	if( !strcmp(argv[1],"a") ){
 #ifdef TEST
