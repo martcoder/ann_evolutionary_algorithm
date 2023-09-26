@@ -117,7 +117,12 @@ float sigmoid(float value){
 }
 
 float relu(float value){
-	return floatAbs(value); // #accel data has plenty of negative values, so using absolute
+	if(value <= 0.0f){
+			return 0.0f;
+	}
+	else{
+		return value; // #accel data has plenty of negative values, so using absolute
+	}
 }
 
 int getRandomNumberHiddenNodesInt(){

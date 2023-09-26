@@ -111,7 +111,7 @@ int main(int argc, char * argv[]){
 			//#Run through each line of data in each datafile
 			eL = 1.0f; eM = 0.0f; eH = 0.0f; // low pressure is expected result
 			process(filenamesList[0][0], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
-			/*process(filenamesList[0][1], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[0][1], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
 			process(filenamesList[0][2], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling);//process selected data through an ANN
 			
 			eL = 0.0f; eM = 1.0f; eH = 0.0f; // medium pressure is expected result
@@ -124,7 +124,7 @@ int main(int argc, char * argv[]){
 			process(filenamesList[2][0], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
 			process(filenamesList[2][1], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
 			process(filenamesList[2][2], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
-			*/
+			
 			
 		}
 		break;

@@ -111,7 +111,7 @@ void getFirstFloat(char * lineOfData, float * result, float normaliseCeiling){
 				int fieldEndFound = 0;
 				int fieldIndex = 0;
         
-        while(!fieldEndFound){
+        while(!fieldEndFound){ // look through line of chars for the comma delimiter
 					if( lineOfData[fieldIndex] == ',')
 						fieldEndFound = 1;
 					else{
@@ -120,13 +120,13 @@ void getFirstFloat(char * lineOfData, float * result, float normaliseCeiling){
 					}
 				}
 				fieldIndex++;
-				value[fieldIndex] = '\0';
-				(*result) = (float) atof(value);
+				value[fieldIndex] = '\0'; // put the foudn value into this array
+				(*result) = (float) atof(value); // converter found value into a float
 				
-				if(  ( (float) floatAbs(*result) ) >  normaliseCeiling ){
-						(*result) = 1.0f;
+				if(  ( (float) floatAbs(*result) ) >  normaliseCeiling ){ // for data over upper ceiling
+						(*result) = 1.0f; // return max absolute normalised value
 				}
-				else{ 
+				else{ // for data under the upper ceiling, get absolute, normalise it and return
 					(*result) =  ( (float) floatAbs(*result) ) / normaliseCeiling;
 				}
 }
