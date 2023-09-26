@@ -28,6 +28,12 @@ typedef struct population {
 	Individual ** newpopulation;		
 }Population;
 
+int numberOfLowDataFiles;
+int numberOfMedDataFiles;
+int numberOfHighDataFiles;
+
+float normaliseCeiling; 
+
 int numCycles;
 int nodeSizeMemory;
 int individualSizeMemory;
@@ -66,9 +72,21 @@ Node * hiddenLayer;
 //#hiddenLayer.append(Node(3))
 Node * outputLayer;
 
-
+float floatAbs(float value){
+	
+	if( value < 0.0f ){
+			return value * -1.0f;
+	}
+	else{
+			return value;
+	}
+}
 
 void initialiseVariables(){
+	
+	numberOfLowDataFiles = 3;
+	numberOfMedDataFiles = 4;
+	numberOfHighDataFiles = 3;
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
 	popsize = 4;
@@ -99,7 +117,7 @@ float sigmoid(float value){
 }
 
 float relu(float value){
-  return abs(value); // #accel data has plenty of negative values, so using absolute
+	return floatAbs(value); // #accel data has plenty of negative values, so using absolute
 }
 
 int getRandomNumberHiddenNodesInt(){
@@ -111,7 +129,7 @@ int getRandomNumberHiddenNodesInt(){
 void constructNode(Node * nodestruct){
 	nodestruct->input = 0.0f;
 	nodestruct->weight = getRandomWeightValueFloat();
-	nodestruct->bias = getRandomBiasValueFloat(weightMax*2.0, weightMax*-2.0);
+	nodestruct->bias = getRandomBiasValueFloat(weightMax/5.0, weightMax/-5.0);
 	nodestruct->weights = (float *) malloc( sizeof(float) * hiddenMax );
 	nodestruct->output = 0.0f;
 	nodestruct->lms = 2.0f; // initialising to a high value...

@@ -45,10 +45,12 @@ int main(int argc, char * argv[]){
 
 
 	if( !strcmp(argv[1],"a") ){
+		
 #ifdef TEST
 		printf("Accelerometer data chosen\n");
 #endif
 		chosenSensor = 0; // 0 is for accelerometer, 1 is for lidar. 
+		normaliseCeiling = 300.0f; // based on empirical evidence... 
 		strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
 		strcpy(filenamesListMiddle[0],"Accel30psi.data"); strcpy(filenamesListMiddle[1],"Accel35psi.data"); strcpy(filenamesListMiddle[2],"Accel40psi.data"); strcpy(filenamesListMiddle[3],"Accel45psi.data");
 		strcpy(filenamesListHigh[0],"Accel50psi.data"); strcpy(filenamesListHigh[1],"Accel55psi.data"); strcpy(filenamesListHigh[2],"Accel60psi.data");
@@ -58,6 +60,7 @@ int main(int argc, char * argv[]){
 		printf("Lidar data chosen\n");
 #endif
 		chosenSensor = 1; // 1 for lidar
+		normaliseCeiling = 500.0f; // based on empirical evidence...
 		strcpy(filenamesListLow[0],"Lidar15psi.data"); strcpy(filenamesListLow[1],"Lidar20psi.data"); strcpy(filenamesListLow[2],"Lidar25psi.data");
 		strcpy(filenamesListMiddle[0],"Lidar30psi.data"); strcpy(filenamesListMiddle[1],"Lidar35psi.data"); strcpy(filenamesListMiddle[2],"Lidar40psi.data"); strcpy(filenamesListMiddle[3],"Lidar45psi.data");
 		strcpy(filenamesListHigh[0],"Lidar50psi.data"); strcpy(filenamesListHigh[1],"Lidar55psi.data"); strcpy(filenamesListHigh[2],"Lidar60psi.data");
@@ -78,27 +81,61 @@ int main(int argc, char * argv[]){
 
 	int c = 0;
 /*	for( c=0; c < numCycles; c++){*/
-	for(c=0; c < 2; c++){
+	for(c=0; c < popsize; c++){
 		 constructFFANN(&superpopulation,c); // # create initial population
 		 //printFFANN(superpopulation.oldpopulation[c]);
 	 }
+
 	 
-	 for(c=0; c < 2; c++){
+	 
+	 
+
+	 /*
+	  * ========expectedResult_Explanation================ 
+	  * eL = 1.0f; eM = 0.0f; eH = 0.0f # LOW pressure data being trained with, note there are 3 data files
+        eL = 0.0f; eM = 0.0f; eH = 0.0f # MED pressure data being trained with, note there are 4 data files
+        eL = 0.0f; eM = 0.0f; eH = 1.0f # HIGH pressure data being trained with, note there are 3 data files
+	  * ==========endOfExpectedResult_Explanation=========
+	  */
+
+	float eL; float eM; float eH;
+	int m = 0;
+	
+	for(c=0;c<2; c++){// # number of cycles of this evolutionary algorithm
+		//#Process the input data through each population member
+		printf("cycle is %d\n",c); //+str(t)+", just about to process member "+str(x))    
+
+		for(m=0; m < popsize; m++){ // #e.g. for each member FFANN, process it
+			printf("Just about to process member %d\n",m);
+			//#print("length of hidden layer is "+str(len(hiddenLayer)))
+			//#Run through each line of data in each datafile
+			eL = 1.0f; eM = 0.0f; eH = 0.0f; // low pressure is expected result
+			process(filenamesList[0][0], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			/*process(filenamesList[0][1], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[0][2], numberOfLowDataFiles, m, eL, eM, eH, normaliseCeiling);//process selected data through an ANN
+			
+			eL = 0.0f; eM = 1.0f; eH = 0.0f; // medium pressure is expected result
+			process(filenamesList[1][0], numberOfMedDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[1][1], numberOfMedDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[1][2], numberOfMedDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[1][3], numberOfMedDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			
+			eL = 0.0f; eM = 0.0f; eH = 1.0f; // high pressure is expected result
+			process(filenamesList[2][0], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[2][1], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			process(filenamesList[2][2], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
+			*/
+			
+		}
+		break;
+ 	}
+
+	for(c=0; c < popsize; c++){
 		 printf("Now back in main ... to print the freshly minted citizen.....\n");
 		 printFFANN(superpopulation.oldpopulation[c]);
 	 
 	 }
 /*
-	  for t in range(50): # number of cycles of this evolutionary algorithm
-		  #Process the input data through each population member
-
-		  for x in range(popsize): #e.g. for each member FFANN, process it
-
-			#print("lenght of hidden layer is "+str(len(hiddenLayer)))
-			print("cycle is "+str(t)+", just about to process member "+str(x))    
-			#Run through each line of data in datafile
-			process(filenamesList, intendedResult, x) # filename, intendedResult is redundant, number of member, func populates result list
-
 			#Get datafile result as LeastMeanSquared
 			lmsavg = statistics.mean(lmsResult)
 			#print("lmssum is "+str(lmssum))
