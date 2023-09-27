@@ -1,5 +1,5 @@
 
-#define AUXTEST 1
+//#define AUXTEST 1
 
 typedef struct node {
 	float input;
@@ -26,6 +26,7 @@ typedef struct individual {
 typedef struct population {
 	Individual ** oldpopulation;
 	Individual ** newpopulation;		
+	Individual ** miscpopulation;
 }Population;
 
 int numberOfLowDataFiles;
@@ -49,6 +50,8 @@ float weightMax;
 float elitism;
 //elitism = max(1, math.ceil( popsize / 10.0 ) )
 
+int tournamentSize;
+
 float * lmsResult;
 
 //intendedResult = sys.argv[1]
@@ -57,20 +60,8 @@ float bestlms;
 
 
 //Set useful variables which define structure of ANNs and hold final best coefficients
-Node bestInputLayer;
-//bestInputLayer = Node()
-Node * bestHiddenLayer;
-//bestHiddenLayer = []
-Node * bestOutputLayer;
 
-Node inputLayer;
 
-Node * hiddenLayer;
-
-//hiddenLayer = []
-//#hiddenLayer.append(Node(2))
-//#hiddenLayer.append(Node(3))
-Node * outputLayer;
 
 float floatAbs(float value){
 	
@@ -89,7 +80,7 @@ void initialiseVariables(){
 	numberOfHighDataFiles = 3;
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
-	popsize = 4;
+	popsize = 6;
 	hiddenMax = 20;
 	hiddenMin = 5;
 	outputLayerLength = 3;
@@ -101,6 +92,7 @@ void initialiseVariables(){
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
 	
 	elitism = 1 + ( popsize / 10.0 );
+	tournamentSize = 4;
 
 }
 
@@ -127,6 +119,11 @@ float relu(float value){
 
 int getRandomNumberHiddenNodesInt(){
 	return (rand() % (hiddenMax - hiddenMin + 1)) + 1;
+}
+
+int getRandomIndividualIndex(){
+
+		return (rand() % (popsize));
 }
 
 
@@ -156,10 +153,61 @@ void constructIndividual(Individual * individualstruct, int paramNumberHiddenNod
 void constructPopulation(Population * populationstruct){
   populationstruct->oldpopulation = (Individual**) malloc( individualSizeMemory * popsize );
 	populationstruct->newpopulation = (Individual**) malloc( individualSizeMemory * popsize );
+	populationstruct->miscpopulation = (Individual**) malloc( individualSizeMemory * (tournamentSize + 2) );
 }
 
-void copyInputLayer(Individual* member, Node* inputlayer){
+void copyIndividual(Individual* from, Individual* to){
+#ifdef AUXTEST
+	printf("Inside copy function\n");
+#endif
+		//====FIRSTLY OVERALL INDIVIDUAL VALUES
 		
+		(*to).lms = (*from).lms;
+#ifdef AUXTEST
+		printf("Just set lms inside copy function\n");
+#endif
+		to->numberOfHiddenNodes = from->numberOfHiddenNodes;
+		to->numberOfOutputNodes = from->numberOfOutputNodes;
+#ifdef AUXTEST
+		printf("about to copy input layer\n");
+#endif
+		//=====FIRSTLY THE INPUT LAYER
+		
+		to->inputLayer->input = 0.0f;
+		to->inputLayer->output = 0.0f;
+		to->inputLayer->weight = from->inputLayer->weight;
+		to->inputLayer->bias = from->inputLayer->bias;
+		
+#ifdef AUXTEST
+		printf("about to copy hidden layer\n");
+#endif
+		//======NOW THE HIDDEN LAYER===========
+		int c = 0; 
+		for(c=0; c < from->numberOfHiddenNodes; c++){
+				to->hiddenLayer[c]->input = 0.0f;
+				to->hiddenLayer[c]->output = 0.0f;
+				to->hiddenLayer[c]->weight = from->hiddenLayer[c]->weight;
+				to->hiddenLayer[c]->bias = from->hiddenLayer[c]->bias;
+		}
+		
+#ifdef AUXTEST
+		printf("about to copy output layer\n");
+#endif
+
+		//======FINALLY THE OUTPUT LAYER=======
+		int w = 0;
+		for(c=0; c < from->numberOfOutputNodes; c++){
+				to->outputLayer[c]->input = 0.0f;
+				to->outputLayer[c]->output = 0.0f;
+				to->outputLayer[c]->weight = from->outputLayer[c]->weight;
+				to->outputLayer[c]->bias = from->outputLayer[c]->bias;
+				for(w=0;w< from->numberOfHiddenNodes; w++){
+						to->outputLayer[c]->weights[w] = from->outputLayer[c]->weights[w];
+				}
+		}
+#ifdef AUXTEST
+		printf("Copying complete\n");
+#endif
 }
 
 Individual ind0;
@@ -563,20 +611,359 @@ Individual ind397;
 Individual ind398;
 Individual ind399;
 
+Individual indX; // for best
+
+Individual indSort; // for sorting during tournament
+
+Individual indTourn0;
+Individual indTourn1;
+Individual indTourn2;
+Individual indTourn3;
 
 
 void addIndividualsToPopulations(Population* superpopulation){
 	
-#ifdef AUXTEST
-	printf("Just about to add first individual to oldpopulation\n");
+	// for tournament purposes
+	
+Node inputNodeTourn0;
+Node hiddenNodeTourn0_0;
+Node hiddenNodeTourn0_1;
+Node hiddenNodeTourn0_2;
+Node hiddenNodeTourn0_3;
+Node hiddenNodeTourn0_4;
+Node hiddenNodeTourn0_5;
+Node hiddenNodeTourn0_6;
+Node hiddenNodeTourn0_7;
+Node hiddenNodeTourn0_8;
+Node hiddenNodeTourn0_9;
+Node hiddenNodeTourn0_10;
+Node hiddenNodeTourn0_11;
+Node hiddenNodeTourn0_12;
+Node hiddenNodeTourn0_13;
+Node hiddenNodeTourn0_14;
+Node hiddenNodeTourn0_15;
+Node hiddenNodeTourn0_16;
+Node hiddenNodeTourn0_17;
+Node hiddenNodeTourn0_18;
+Node hiddenNodeTourn0_19;
+Node outputNodeTourn0_0;
+Node outputNodeTourn0_1;
+Node outputNodeTourn0_2;
+
+indTourn0.inputLayer = &inputNodeTourn0;
+indTourn0.hiddenLayer = (Node**) malloc(nodeSizeMemory * hiddenMax);
+indTourn0.outputLayer = (Node**) malloc(nodeSizeMemory * outputLayerLength);
+indTourn0.hiddenLayer[0] = &hiddenNodeTourn0_0;
+indTourn0.hiddenLayer[1] = &hiddenNodeTourn0_1;
+indTourn0.hiddenLayer[2] = &hiddenNodeTourn0_2;
+indTourn0.hiddenLayer[3] = &hiddenNodeTourn0_3;
+indTourn0.hiddenLayer[4] = &hiddenNodeTourn0_4;
+indTourn0.hiddenLayer[5] = &hiddenNodeTourn0_5;
+indTourn0.hiddenLayer[6] = &hiddenNodeTourn0_6;
+indTourn0.hiddenLayer[7] = &hiddenNodeTourn0_7;
+indTourn0.hiddenLayer[8] = &hiddenNodeTourn0_8;
+indTourn0.hiddenLayer[9] = &hiddenNodeTourn0_9;
+indTourn0.hiddenLayer[10] = &hiddenNodeTourn0_10;
+indTourn0.hiddenLayer[11] = &hiddenNodeTourn0_11;
+indTourn0.hiddenLayer[12] = &hiddenNodeTourn0_12;
+indTourn0.hiddenLayer[13] = &hiddenNodeTourn0_13;
+indTourn0.hiddenLayer[14] = &hiddenNodeTourn0_14;
+indTourn0.hiddenLayer[15] = &hiddenNodeTourn0_15;
+indTourn0.hiddenLayer[16] = &hiddenNodeTourn0_16;
+indTourn0.hiddenLayer[17] = &hiddenNodeTourn0_17;
+indTourn0.hiddenLayer[18] = &hiddenNodeTourn0_18;
+indTourn0.hiddenLayer[19] = &hiddenNodeTourn0_19;
+indTourn0.outputLayer[0] = &outputNodeTourn0_0;
+indTourn0.outputLayer[1] = &outputNodeTourn0_1;
+indTourn0.outputLayer[2] = &outputNodeTourn0_2;
+
+
+Node inputNodeTourn1;
+Node hiddenNodeTourn1_0;
+Node hiddenNodeTourn1_1;
+Node hiddenNodeTourn1_2;
+Node hiddenNodeTourn1_3;
+Node hiddenNodeTourn1_4;
+Node hiddenNodeTourn1_5;
+Node hiddenNodeTourn1_6;
+Node hiddenNodeTourn1_7;
+Node hiddenNodeTourn1_8;
+Node hiddenNodeTourn1_9;
+Node hiddenNodeTourn1_10;
+Node hiddenNodeTourn1_11;
+Node hiddenNodeTourn1_12;
+Node hiddenNodeTourn1_13;
+Node hiddenNodeTourn1_14;
+Node hiddenNodeTourn1_15;
+Node hiddenNodeTourn1_16;
+Node hiddenNodeTourn1_17;
+Node hiddenNodeTourn1_18;
+Node hiddenNodeTourn1_19;
+Node outputNodeTourn1_0;
+Node outputNodeTourn1_1;
+Node outputNodeTourn1_2;
+
+indTourn1.inputLayer = &inputNodeTourn1;
+indTourn1.hiddenLayer = (Node**) malloc(nodeSizeMemory * hiddenMax);
+indTourn1.outputLayer = (Node**) malloc(nodeSizeMemory * outputLayerLength);
+indTourn1.hiddenLayer[0] = &hiddenNodeTourn1_0;
+indTourn1.hiddenLayer[1] = &hiddenNodeTourn1_1;
+indTourn1.hiddenLayer[2] = &hiddenNodeTourn1_2;
+indTourn1.hiddenLayer[3] = &hiddenNodeTourn1_3;
+indTourn1.hiddenLayer[4] = &hiddenNodeTourn1_4;
+indTourn1.hiddenLayer[5] = &hiddenNodeTourn1_5;
+indTourn1.hiddenLayer[6] = &hiddenNodeTourn1_6;
+indTourn1.hiddenLayer[7] = &hiddenNodeTourn1_7;
+indTourn1.hiddenLayer[8] = &hiddenNodeTourn1_8;
+indTourn1.hiddenLayer[9] = &hiddenNodeTourn1_9;
+indTourn1.hiddenLayer[10] = &hiddenNodeTourn1_10;
+indTourn1.hiddenLayer[11] = &hiddenNodeTourn1_11;
+indTourn1.hiddenLayer[12] = &hiddenNodeTourn1_12;
+indTourn1.hiddenLayer[13] = &hiddenNodeTourn1_13;
+indTourn1.hiddenLayer[14] = &hiddenNodeTourn1_14;
+indTourn1.hiddenLayer[15] = &hiddenNodeTourn1_15;
+indTourn1.hiddenLayer[16] = &hiddenNodeTourn1_16;
+indTourn1.hiddenLayer[17] = &hiddenNodeTourn1_17;
+indTourn1.hiddenLayer[18] = &hiddenNodeTourn1_18;
+indTourn1.hiddenLayer[19] = &hiddenNodeTourn1_19;
+indTourn1.outputLayer[0] = &outputNodeTourn1_0;
+indTourn1.outputLayer[1] = &outputNodeTourn1_1;
+indTourn1.outputLayer[2] = &outputNodeTourn1_2;
+
+
+Node inputNodeTourn2;
+Node hiddenNodeTourn2_0;
+Node hiddenNodeTourn2_1;
+Node hiddenNodeTourn2_2;
+Node hiddenNodeTourn2_3;
+Node hiddenNodeTourn2_4;
+Node hiddenNodeTourn2_5;
+Node hiddenNodeTourn2_6;
+Node hiddenNodeTourn2_7;
+Node hiddenNodeTourn2_8;
+Node hiddenNodeTourn2_9;
+Node hiddenNodeTourn2_10;
+Node hiddenNodeTourn2_11;
+Node hiddenNodeTourn2_12;
+Node hiddenNodeTourn2_13;
+Node hiddenNodeTourn2_14;
+Node hiddenNodeTourn2_15;
+Node hiddenNodeTourn2_16;
+Node hiddenNodeTourn2_17;
+Node hiddenNodeTourn2_18;
+Node hiddenNodeTourn2_19;
+Node outputNodeTourn2_0;
+Node outputNodeTourn2_1;
+Node outputNodeTourn2_2;
+
+indTourn2.inputLayer = &inputNodeTourn2;
+indTourn2.hiddenLayer = (Node**) malloc(nodeSizeMemory * hiddenMax);
+indTourn2.outputLayer = (Node**) malloc(nodeSizeMemory * outputLayerLength);
+indTourn2.hiddenLayer[0] = &hiddenNodeTourn2_0;
+indTourn2.hiddenLayer[1] = &hiddenNodeTourn2_1;
+indTourn2.hiddenLayer[2] = &hiddenNodeTourn2_2;
+indTourn2.hiddenLayer[3] = &hiddenNodeTourn2_3;
+indTourn2.hiddenLayer[4] = &hiddenNodeTourn2_4;
+indTourn2.hiddenLayer[5] = &hiddenNodeTourn2_5;
+indTourn2.hiddenLayer[6] = &hiddenNodeTourn2_6;
+indTourn2.hiddenLayer[7] = &hiddenNodeTourn2_7;
+indTourn2.hiddenLayer[8] = &hiddenNodeTourn2_8;
+indTourn2.hiddenLayer[9] = &hiddenNodeTourn2_9;
+indTourn2.hiddenLayer[10] = &hiddenNodeTourn2_10;
+indTourn2.hiddenLayer[11] = &hiddenNodeTourn2_11;
+indTourn2.hiddenLayer[12] = &hiddenNodeTourn2_12;
+indTourn2.hiddenLayer[13] = &hiddenNodeTourn2_13;
+indTourn2.hiddenLayer[14] = &hiddenNodeTourn2_14;
+indTourn2.hiddenLayer[15] = &hiddenNodeTourn2_15;
+indTourn2.hiddenLayer[16] = &hiddenNodeTourn2_16;
+indTourn2.hiddenLayer[17] = &hiddenNodeTourn2_17;
+indTourn2.hiddenLayer[18] = &hiddenNodeTourn2_18;
+indTourn2.hiddenLayer[19] = &hiddenNodeTourn2_19;
+indTourn2.outputLayer[0] = &outputNodeTourn2_0;
+indTourn2.outputLayer[1] = &outputNodeTourn2_1;
+indTourn2.outputLayer[2] = &outputNodeTourn2_2;
+
+
+Node inputNodeTourn3;
+Node hiddenNodeTourn3_0;
+Node hiddenNodeTourn3_1;
+Node hiddenNodeTourn3_2;
+Node hiddenNodeTourn3_3;
+Node hiddenNodeTourn3_4;
+Node hiddenNodeTourn3_5;
+Node hiddenNodeTourn3_6;
+Node hiddenNodeTourn3_7;
+Node hiddenNodeTourn3_8;
+Node hiddenNodeTourn3_9;
+Node hiddenNodeTourn3_10;
+Node hiddenNodeTourn3_11;
+Node hiddenNodeTourn3_12;
+Node hiddenNodeTourn3_13;
+Node hiddenNodeTourn3_14;
+Node hiddenNodeTourn3_15;
+Node hiddenNodeTourn3_16;
+Node hiddenNodeTourn3_17;
+Node hiddenNodeTourn3_18;
+Node hiddenNodeTourn3_19;
+Node outputNodeTourn3_0;
+Node outputNodeTourn3_1;
+Node outputNodeTourn3_2;
+indTourn3.inputLayer = &inputNodeTourn3;
+indTourn3.hiddenLayer = (Node**) malloc(nodeSizeMemory * hiddenMax);
+indTourn3.outputLayer = (Node**) malloc(nodeSizeMemory * outputLayerLength);
+indTourn3.hiddenLayer[0] = &hiddenNodeTourn3_0;
+indTourn3.hiddenLayer[1] = &hiddenNodeTourn3_1;
+indTourn3.hiddenLayer[2] = &hiddenNodeTourn3_2;
+indTourn3.hiddenLayer[3] = &hiddenNodeTourn3_3;
+indTourn3.hiddenLayer[4] = &hiddenNodeTourn3_4;
+indTourn3.hiddenLayer[5] = &hiddenNodeTourn3_5;
+indTourn3.hiddenLayer[6] = &hiddenNodeTourn3_6;
+indTourn3.hiddenLayer[7] = &hiddenNodeTourn3_7;
+indTourn3.hiddenLayer[8] = &hiddenNodeTourn3_8;
+indTourn3.hiddenLayer[9] = &hiddenNodeTourn3_9;
+indTourn3.hiddenLayer[10] = &hiddenNodeTourn3_10;
+indTourn3.hiddenLayer[11] = &hiddenNodeTourn3_11;
+indTourn3.hiddenLayer[12] = &hiddenNodeTourn3_12;
+indTourn3.hiddenLayer[13] = &hiddenNodeTourn3_13;
+indTourn3.hiddenLayer[14] = &hiddenNodeTourn3_14;
+indTourn3.hiddenLayer[15] = &hiddenNodeTourn3_15;
+indTourn3.hiddenLayer[16] = &hiddenNodeTourn3_16;
+indTourn3.hiddenLayer[17] = &hiddenNodeTourn3_17;
+indTourn3.hiddenLayer[18] = &hiddenNodeTourn3_18;
+indTourn3.hiddenLayer[19] = &hiddenNodeTourn3_19;
+indTourn3.outputLayer[0] = &outputNodeTourn3_0;
+indTourn3.outputLayer[1] = &outputNodeTourn3_1;
+indTourn3.outputLayer[2] = &outputNodeTourn3_2;
+	
+	// for sorting purposes need an individual
+Node inputNodeSort;
+Node hiddenNodeSort_0;
+Node hiddenNodeSort_1;
+Node hiddenNodeSort_2;
+Node hiddenNodeSort_3;
+Node hiddenNodeSort_4;
+Node hiddenNodeSort_5;
+Node hiddenNodeSort_6;
+Node hiddenNodeSort_7;
+Node hiddenNodeSort_8;
+Node hiddenNodeSort_9;
+Node hiddenNodeSort_10;
+Node hiddenNodeSort_11;
+Node hiddenNodeSort_12;
+Node hiddenNodeSort_13;
+Node hiddenNodeSort_14;
+Node hiddenNodeSort_15;
+Node hiddenNodeSort_16;
+Node hiddenNodeSort_17;
+Node hiddenNodeSort_18;
+Node hiddenNodeSort_19;
+Node outputNodeSort_0;
+Node outputNodeSort_1;
+Node outputNodeSort_2;
+
+indSort.inputLayer = &inputNodeSort;
+indSort.hiddenLayer = (Node**) malloc(nodeSizeMemory * hiddenMax);
+indSort.outputLayer = (Node**) malloc(nodeSizeMemory * outputLayerLength);
+indSort.hiddenLayer[0] = &hiddenNodeSort_0;
+indSort.hiddenLayer[1] = &hiddenNodeSort_1;
+indSort.hiddenLayer[2] = &hiddenNodeSort_2;
+indSort.hiddenLayer[3] = &hiddenNodeSort_3;
+indSort.hiddenLayer[4] = &hiddenNodeSort_4;
+indSort.hiddenLayer[5] = &hiddenNodeSort_5;
+indSort.hiddenLayer[6] = &hiddenNodeSort_6;
+indSort.hiddenLayer[7] = &hiddenNodeSort_7;
+indSort.hiddenLayer[8] = &hiddenNodeSort_8;
+indSort.hiddenLayer[9] = &hiddenNodeSort_9;
+indSort.hiddenLayer[10] = &hiddenNodeSort_10;
+indSort.hiddenLayer[11] = &hiddenNodeSort_11;
+indSort.hiddenLayer[12] = &hiddenNodeSort_12;
+indSort.hiddenLayer[13] = &hiddenNodeSort_13;
+indSort.hiddenLayer[14] = &hiddenNodeSort_14;
+indSort.hiddenLayer[15] = &hiddenNodeSort_15;
+indSort.hiddenLayer[16] = &hiddenNodeSort_16;
+indSort.hiddenLayer[17] = &hiddenNodeSort_17;
+indSort.hiddenLayer[18] = &hiddenNodeSort_18;
+indSort.hiddenLayer[19] = &hiddenNodeSort_19;
+indSort.outputLayer[0] = &outputNodeSort_0;
+indSort.outputLayer[1] = &outputNodeSort_1;
+indSort.outputLayer[2] = &outputNodeSort_2;
+	
+	
+	#ifdef AUXTEST
+	printf("Just about to declare the data structures for the best single ANN\n");
 #endif
 	
-superpopulation->oldpopulation[0] = &ind0;
+	//Declare data structures to hold best ANN values
 
-#ifdef AUXTEST
-	printf("Just about to add second individual to oldpopulation\n");
+Node inputNodeX;
+Node hiddenNodeX_0;
+Node hiddenNodeX_1;
+Node hiddenNodeX_2;
+Node hiddenNodeX_3;
+Node hiddenNodeX_4;
+Node hiddenNodeX_5;
+Node hiddenNodeX_6;
+Node hiddenNodeX_7;
+Node hiddenNodeX_8;
+Node hiddenNodeX_9;
+Node hiddenNodeX_10;
+Node hiddenNodeX_11;
+Node hiddenNodeX_12;
+Node hiddenNodeX_13;
+Node hiddenNodeX_14;
+Node hiddenNodeX_15;
+Node hiddenNodeX_16;
+Node hiddenNodeX_17;
+Node hiddenNodeX_18;
+Node hiddenNodeX_19;
+Node outputNodeX_0;
+Node outputNodeX_1;
+Node outputNodeX_2;
+
+indX.inputLayer = &inputNodeX;
+indX.hiddenLayer = (Node**) malloc(nodeSizeMemory * hiddenMax);
+indX.outputLayer = (Node**) malloc(nodeSizeMemory * outputLayerLength);
+indX.hiddenLayer[0] = &hiddenNodeX_0;
+indX.hiddenLayer[1] = &hiddenNodeX_1;
+indX.hiddenLayer[2] = &hiddenNodeX_2;
+indX.hiddenLayer[3] = &hiddenNodeX_3;
+indX.hiddenLayer[4] = &hiddenNodeX_4;
+indX.hiddenLayer[5] = &hiddenNodeX_5;
+indX.hiddenLayer[6] = &hiddenNodeX_6;
+indX.hiddenLayer[7] = &hiddenNodeX_7;
+indX.hiddenLayer[8] = &hiddenNodeX_8;
+indX.hiddenLayer[9] = &hiddenNodeX_9;
+indX.hiddenLayer[10] = &hiddenNodeX_10;
+indX.hiddenLayer[11] = &hiddenNodeX_11;
+indX.hiddenLayer[12] = &hiddenNodeX_12;
+indX.hiddenLayer[13] = &hiddenNodeX_13;
+indX.hiddenLayer[14] = &hiddenNodeX_14;
+indX.hiddenLayer[15] = &hiddenNodeX_15;
+indX.hiddenLayer[16] = &hiddenNodeX_16;
+indX.hiddenLayer[17] = &hiddenNodeX_17;
+indX.hiddenLayer[18] = &hiddenNodeX_18;
+indX.hiddenLayer[19] = &hiddenNodeX_19;
+indX.outputLayer[0] = &outputNodeX_0;
+indX.outputLayer[1] = &outputNodeX_1;
+indX.outputLayer[2] = &outputNodeX_2;
+	
+	
+	#ifdef AUXTEST
+	printf("Just about to add the singleton individual to bestpopulation\n");
 #endif
 
+superpopulation->miscpopulation[0] = &indX;
+superpopulation->miscpopulation[1] = &indSort;
+superpopulation->miscpopulation[2] = &indTourn0;
+superpopulation->miscpopulation[3] = &indTourn1;
+superpopulation->miscpopulation[4] = &indTourn2;
+superpopulation->miscpopulation[5] = &indTourn3;
+
+#ifdef AUXTEST
+	printf("Just about to add individuals to oldpopulation\n");
+#endif
+
+superpopulation->oldpopulation[0] = &ind0;
 superpopulation->oldpopulation[1] = &ind1;
 superpopulation->oldpopulation[2] = &ind2;
 superpopulation->oldpopulation[3] = &ind3;
@@ -776,6 +1163,207 @@ superpopulation->oldpopulation[196] = &ind196;
 superpopulation->oldpopulation[197] = &ind197;
 superpopulation->oldpopulation[198] = &ind198;
 superpopulation->oldpopulation[199] = &ind199;
+
+superpopulation->newpopulation[0] = &ind200;
+superpopulation->newpopulation[1] = &ind201;
+superpopulation->newpopulation[2] = &ind202;
+superpopulation->newpopulation[3] = &ind203;
+superpopulation->newpopulation[4] = &ind204;
+superpopulation->newpopulation[5] = &ind205;
+superpopulation->newpopulation[6] = &ind206;
+superpopulation->newpopulation[7] = &ind207;
+superpopulation->newpopulation[8] = &ind208;
+superpopulation->newpopulation[9] = &ind209;
+superpopulation->newpopulation[10] = &ind210;
+superpopulation->newpopulation[11] = &ind211;
+superpopulation->newpopulation[12] = &ind212;
+superpopulation->newpopulation[13] = &ind213;
+superpopulation->newpopulation[14] = &ind214;
+superpopulation->newpopulation[15] = &ind215;
+superpopulation->newpopulation[16] = &ind216;
+superpopulation->newpopulation[17] = &ind217;
+superpopulation->newpopulation[18] = &ind218;
+superpopulation->newpopulation[19] = &ind219;
+superpopulation->newpopulation[20] = &ind220;
+superpopulation->newpopulation[21] = &ind221;
+superpopulation->newpopulation[22] = &ind222;
+superpopulation->newpopulation[23] = &ind223;
+superpopulation->newpopulation[24] = &ind224;
+superpopulation->newpopulation[25] = &ind225;
+superpopulation->newpopulation[26] = &ind226;
+superpopulation->newpopulation[27] = &ind227;
+superpopulation->newpopulation[28] = &ind228;
+superpopulation->newpopulation[29] = &ind229;
+superpopulation->newpopulation[30] = &ind230;
+superpopulation->newpopulation[31] = &ind231;
+superpopulation->newpopulation[32] = &ind232;
+superpopulation->newpopulation[33] = &ind233;
+superpopulation->newpopulation[34] = &ind234;
+superpopulation->newpopulation[35] = &ind235;
+superpopulation->newpopulation[36] = &ind236;
+superpopulation->newpopulation[37] = &ind237;
+superpopulation->newpopulation[38] = &ind238;
+superpopulation->newpopulation[39] = &ind239;
+superpopulation->newpopulation[40] = &ind240;
+superpopulation->newpopulation[41] = &ind241;
+superpopulation->newpopulation[42] = &ind242;
+superpopulation->newpopulation[43] = &ind243;
+superpopulation->newpopulation[44] = &ind244;
+superpopulation->newpopulation[45] = &ind245;
+superpopulation->newpopulation[46] = &ind246;
+superpopulation->newpopulation[47] = &ind247;
+superpopulation->newpopulation[48] = &ind248;
+superpopulation->newpopulation[49] = &ind249;
+superpopulation->newpopulation[50] = &ind250;
+superpopulation->newpopulation[51] = &ind251;
+superpopulation->newpopulation[52] = &ind252;
+superpopulation->newpopulation[53] = &ind253;
+superpopulation->newpopulation[54] = &ind254;
+superpopulation->newpopulation[55] = &ind255;
+superpopulation->newpopulation[56] = &ind256;
+superpopulation->newpopulation[57] = &ind257;
+superpopulation->newpopulation[58] = &ind258;
+superpopulation->newpopulation[59] = &ind259;
+superpopulation->newpopulation[60] = &ind260;
+superpopulation->newpopulation[61] = &ind261;
+superpopulation->newpopulation[62] = &ind262;
+superpopulation->newpopulation[63] = &ind263;
+superpopulation->newpopulation[64] = &ind264;
+superpopulation->newpopulation[65] = &ind265;
+superpopulation->newpopulation[66] = &ind266;
+superpopulation->newpopulation[67] = &ind267;
+superpopulation->newpopulation[68] = &ind268;
+superpopulation->newpopulation[69] = &ind269;
+superpopulation->newpopulation[70] = &ind270;
+superpopulation->newpopulation[71] = &ind271;
+superpopulation->newpopulation[72] = &ind272;
+superpopulation->newpopulation[73] = &ind273;
+superpopulation->newpopulation[74] = &ind274;
+superpopulation->newpopulation[75] = &ind275;
+superpopulation->newpopulation[76] = &ind276;
+superpopulation->newpopulation[77] = &ind277;
+superpopulation->newpopulation[78] = &ind278;
+superpopulation->newpopulation[79] = &ind279;
+superpopulation->newpopulation[80] = &ind280;
+superpopulation->newpopulation[81] = &ind281;
+superpopulation->newpopulation[82] = &ind282;
+superpopulation->newpopulation[83] = &ind283;
+superpopulation->newpopulation[84] = &ind284;
+superpopulation->newpopulation[85] = &ind285;
+superpopulation->newpopulation[86] = &ind286;
+superpopulation->newpopulation[87] = &ind287;
+superpopulation->newpopulation[88] = &ind288;
+superpopulation->newpopulation[89] = &ind289;
+superpopulation->newpopulation[90] = &ind290;
+superpopulation->newpopulation[91] = &ind291;
+superpopulation->newpopulation[92] = &ind292;
+superpopulation->newpopulation[93] = &ind293;
+superpopulation->newpopulation[94] = &ind294;
+superpopulation->newpopulation[95] = &ind295;
+superpopulation->newpopulation[96] = &ind296;
+superpopulation->newpopulation[97] = &ind297;
+superpopulation->newpopulation[98] = &ind298;
+superpopulation->newpopulation[99] = &ind299;
+superpopulation->newpopulation[100] = &ind300;
+superpopulation->newpopulation[101] = &ind301;
+superpopulation->newpopulation[102] = &ind302;
+superpopulation->newpopulation[103] = &ind303;
+superpopulation->newpopulation[104] = &ind304;
+superpopulation->newpopulation[105] = &ind305;
+superpopulation->newpopulation[106] = &ind306;
+superpopulation->newpopulation[107] = &ind307;
+superpopulation->newpopulation[108] = &ind308;
+superpopulation->newpopulation[109] = &ind309;
+superpopulation->newpopulation[110] = &ind310;
+superpopulation->newpopulation[111] = &ind311;
+superpopulation->newpopulation[112] = &ind312;
+superpopulation->newpopulation[113] = &ind313;
+superpopulation->newpopulation[114] = &ind314;
+superpopulation->newpopulation[115] = &ind315;
+superpopulation->newpopulation[116] = &ind316;
+superpopulation->newpopulation[117] = &ind317;
+superpopulation->newpopulation[118] = &ind318;
+superpopulation->newpopulation[119] = &ind319;
+superpopulation->newpopulation[120] = &ind320;
+superpopulation->newpopulation[121] = &ind321;
+superpopulation->newpopulation[122] = &ind322;
+superpopulation->newpopulation[123] = &ind323;
+superpopulation->newpopulation[124] = &ind324;
+superpopulation->newpopulation[125] = &ind325;
+superpopulation->newpopulation[126] = &ind326;
+superpopulation->newpopulation[127] = &ind327;
+superpopulation->newpopulation[128] = &ind328;
+superpopulation->newpopulation[129] = &ind329;
+superpopulation->newpopulation[130] = &ind330;
+superpopulation->newpopulation[131] = &ind331;
+superpopulation->newpopulation[132] = &ind332;
+superpopulation->newpopulation[133] = &ind333;
+superpopulation->newpopulation[134] = &ind334;
+superpopulation->newpopulation[135] = &ind335;
+superpopulation->newpopulation[136] = &ind336;
+superpopulation->newpopulation[137] = &ind337;
+superpopulation->newpopulation[138] = &ind338;
+superpopulation->newpopulation[139] = &ind339;
+superpopulation->newpopulation[140] = &ind340;
+superpopulation->newpopulation[141] = &ind341;
+superpopulation->newpopulation[142] = &ind342;
+superpopulation->newpopulation[143] = &ind343;
+superpopulation->newpopulation[144] = &ind344;
+superpopulation->newpopulation[145] = &ind345;
+superpopulation->newpopulation[146] = &ind346;
+superpopulation->newpopulation[147] = &ind347;
+superpopulation->newpopulation[148] = &ind348;
+superpopulation->newpopulation[149] = &ind349;
+superpopulation->newpopulation[150] = &ind350;
+superpopulation->newpopulation[151] = &ind351;
+superpopulation->newpopulation[152] = &ind352;
+superpopulation->newpopulation[153] = &ind353;
+superpopulation->newpopulation[154] = &ind354;
+superpopulation->newpopulation[155] = &ind355;
+superpopulation->newpopulation[156] = &ind356;
+superpopulation->newpopulation[157] = &ind357;
+superpopulation->newpopulation[158] = &ind358;
+superpopulation->newpopulation[159] = &ind359;
+superpopulation->newpopulation[160] = &ind360;
+superpopulation->newpopulation[161] = &ind361;
+superpopulation->newpopulation[162] = &ind362;
+superpopulation->newpopulation[163] = &ind363;
+superpopulation->newpopulation[164] = &ind364;
+superpopulation->newpopulation[165] = &ind365;
+superpopulation->newpopulation[166] = &ind366;
+superpopulation->newpopulation[167] = &ind367;
+superpopulation->newpopulation[168] = &ind368;
+superpopulation->newpopulation[169] = &ind369;
+superpopulation->newpopulation[170] = &ind370;
+superpopulation->newpopulation[171] = &ind371;
+superpopulation->newpopulation[172] = &ind372;
+superpopulation->newpopulation[173] = &ind373;
+superpopulation->newpopulation[174] = &ind374;
+superpopulation->newpopulation[175] = &ind375;
+superpopulation->newpopulation[176] = &ind376;
+superpopulation->newpopulation[177] = &ind377;
+superpopulation->newpopulation[178] = &ind378;
+superpopulation->newpopulation[179] = &ind379;
+superpopulation->newpopulation[180] = &ind380;
+superpopulation->newpopulation[181] = &ind381;
+superpopulation->newpopulation[182] = &ind382;
+superpopulation->newpopulation[183] = &ind383;
+superpopulation->newpopulation[184] = &ind384;
+superpopulation->newpopulation[185] = &ind385;
+superpopulation->newpopulation[186] = &ind386;
+superpopulation->newpopulation[187] = &ind387;
+superpopulation->newpopulation[188] = &ind388;
+superpopulation->newpopulation[189] = &ind389;
+superpopulation->newpopulation[190] = &ind390;
+superpopulation->newpopulation[191] = &ind391;
+superpopulation->newpopulation[192] = &ind392;
+superpopulation->newpopulation[193] = &ind393;
+superpopulation->newpopulation[194] = &ind394;
+superpopulation->newpopulation[195] = &ind395;
+superpopulation->newpopulation[196] = &ind396;
+superpopulation->newpopulation[197] = &ind397;
+superpopulation->newpopulation[198] = &ind398;
+superpopulation->newpopulation[199] = &ind399;
 
 Node inputNode0;
 Node hiddenNode0_0;

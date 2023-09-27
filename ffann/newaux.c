@@ -3,6 +3,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <stdbool.h>
+
 #ifndef MATH_H
 #define MATH_H 1
 #include<math.h>
@@ -63,6 +65,13 @@ LMSresultHIGH = []
 float normalisedLms( float a, float b, float c, float expectedA, float expectedB, float expectedC){
   float x,y,z;
   float lmsA, lmsB, lmsC;
+  //Ensure that no division by zero happens....
+  if(a == 0.0){ a = 0.0000001f;}
+  if(b == 0.0){ b = 0.0000001f;}
+  if(c == 0.0){ c = 0.0000001f;}
+  
+  //Now calculate LMS depending on which value is the largest...
+  // e.g. for LOW pressure the a value should ideally be largest
 	if( (a > b) && (a > c) ){ // a largest
 		x = 1.0f; // a / a
 		y = a/b;
@@ -246,17 +255,17 @@ void printFFANN(Individual* citizen){
 		}
 		
 		//finally print lms detail
-		printf("Individual's LMS is currently: %f\n",citizen->lms);
+		printf("++++++ ===Individual's LMS is currently: %f ===+++++++\n\n",citizen->lms);
 }
 
-void constructFFANN(Population* populationStruct, int memberNumber){
+void constructFFANN(Individual** populationStruct, int memberNumber){
 	//# construct input layer, aka a single Node 
 #ifdef TEST
 printf("Just about to go through constructFFANN function, first to construct input node...\n");
 #endif
 	//constructIndividual( superpopulation.oldpopulation[memberNumber] );
  
- constructNode(populationStruct->oldpopulation[memberNumber]->inputLayer);
+ constructNode(populationStruct[memberNumber]->inputLayer);
  //# inputLayer = Node() 
  int numberOfHidden = getRandomNumberHiddenNodesInt();
  //#print("number of hidden: "+str(numberOfHidden))
@@ -278,7 +287,7 @@ printf("Just about to iterate over all hidden layer nodes and create each one...
 	
 	int h = 0;
 	for(h=0; h < numberOfHidden; h++){
-	  constructNode(populationStruct->oldpopulation[memberNumber]->hiddenLayer[h]);
+	  constructNode(populationStruct[memberNumber]->hiddenLayer[h]);
    }	
   
  /*for(c=0; c < numberOfHidden; c++){ //#x in range(numberOfHidden):
@@ -299,7 +308,7 @@ printf("Just about to go move onto the output layer...\n");
 #ifdef TEST
 printf("Just about to do CONSTRUCTNODE on an output layer node...\n");
 #endif
-	  constructNode(populationStruct->oldpopulation[memberNumber]->outputLayer[o]);
+	  constructNode(populationStruct[memberNumber]->outputLayer[o]);
    }	
 #ifdef TEST
 printf("Just about to iterate throgh output layer...\n");
@@ -315,7 +324,7 @@ printf("Just about to iterate throgh output layer...\n");
 		 //outputLayer[c]->weights[d] = 0.0f; //#clear the weights
 		 //#need same number of weights in each output node as there are hidden nodes...
 
-			 populationStruct->oldpopulation[memberNumber]->outputLayer[c]->weights[d] = getRandomWeightValueFloat(); //#initialise weights randomly
+			 populationStruct[memberNumber]->outputLayer[c]->weights[d] = getRandomWeightValueFloat(); //#initialise weights randomly
 			}
 		}
 		
@@ -324,12 +333,10 @@ printf("Just finished constructing output layer...\n");
 #endif
 
 
-#ifdef TEST
-printf("Just about to add individual to population...\n");
-#endif
+
  //#Now add to the current population list
  //Individual citizen;
- constructIndividual(populationStruct->oldpopulation[memberNumber],numberOfHidden,defaultNumberOutputNodes);
+ constructIndividual(populationStruct[memberNumber],numberOfHidden,defaultNumberOutputNodes);
  /*populationStruct->oldpopulation[memberNumber]->inputLayer = &inputnode;
  populationStruct->oldpopulation[memberNumber]->hiddenLayer = hiddenLayer;
  populationStruct->oldpopulation[memberNumber]->outputLayer = outputLayer;*/
@@ -338,29 +345,95 @@ printf("Just about to add individual to population...\n");
 printf("Just put the parts of the individual together...\n");
 #endif 
 
- 
+}
 
-#ifdef TEST
-printf("Just added the individual to the oldpopulation...\n");
-#endif 
- 
- 
-/* 
-#ifdef TEST
-printf("Just about to PRINT OUT THAT CITIZEN's DETAILS...\n");
-#endif 
+void bubbleSort(Individual** arr, int n) //inspired by https://www.geeksforgeeks.org/bubble-sort/ 
+{
+	
+#ifdef AUXTEST
+	printf("Inside bubbleSort function\n");
+#endif
 
-	printFFANN(populationStruct->oldpopulation[memberNumber]);
-	*/
- /*for(c=0;c<popsize;c++){
-	Individual citizen;
-	constructIndividual(&citizen);
-	citizen.inputLayer = &inputnode;
-	citizen.hiddenLayer = hiddenLayer;
-	citizen.outputLayer = outputLayer;
-	populationStruct->oldpopulation[c] = (Individual*) &citizen;
- }*/
+    int i, j;
+    bool swapped;
+    for (i = 0; i < n - 1; i++) {
+        swapped = false;
+        for (j = 0; j < n - i - 1; j++) {
+#ifdef AUXTEST					
+					printf("i is %d and j is %d\n",i, j);
+#endif
+            if (arr[j]->lms > arr[j + 1]->lms) {
+                copyIndividual( arr[j + 1], &indSort);
+								copyIndividual( arr[j], arr[j+1] );
+								copyIndividual( &indSort, arr[j] ); 
+                swapped = true;
+            }
+        }
  
+        // If no two elements were swapped
+        // by inner loop, then break
+        if (swapped == false)
+            break;
+    }
+#ifdef TESTAUX
+		printf("Finished bubbleSort function\n");
+#endif
 }
 
 
+void tournament(Population* superpopulation, int newpopMemberIndex){
+	
+	//select individuals for tournament ... assuming tournamentSize of 4
+	int index1, index2, index3, index4; 
+	index1 = getRandomIndividualIndex();
+	index2 = getRandomIndividualIndex();
+	while(index2 == index1){
+		index2 = getRandomIndividualIndex();
+	}
+	index3 = getRandomIndividualIndex();
+	while( (index3 == index2) || (index3 == index1) ){
+		index3 = getRandomIndividualIndex();
+	}
+	index4 = getRandomIndividualIndex(); 
+	while( (index4 == index3) || (index4 == index2) || (index4 == index1) ){
+		index4 = getRandomIndividualIndex();
+	}
+	
+	Individual** tournArray = (Individual**) malloc( individualSizeMemory * tournamentSize );
+	printf("Chosen tournament member indexes are %d %d %d %d\n",index1, index2, index3, index4);
+	
+	printf("About to copy indiv at index %d into tournArray[0]\n",index1);
+	tournArray[0] = &indTourn0;
+	copyIndividual(superpopulation->oldpopulation[index1], tournArray[0]);
+	
+	
+	printf("About to copy indiv at index %d into tournArray[1]\n",index2);
+	tournArray[1] = &indTourn1;
+	copyIndividual(superpopulation->oldpopulation[index2], tournArray[1]);
+	
+	printf("About to copy indiv at index %d into tournArray[2]\n",index3);
+	tournArray[2] = &indTourn2;
+	copyIndividual(superpopulation->oldpopulation[index3], tournArray[2] );
+	
+	printf("About to copy indiv at index %d into tournArray[3]\n",index4);
+	tournArray[3] = &indTourn3;
+	copyIndividual( superpopulation->oldpopulation[index4], tournArray[3]);
+	
+	bubbleSort(tournArray, 4); 
+	
+	printf("sorted tournarray is: \n");
+	printFFANN(tournArray[0]);
+	printFFANN(tournArray[1]);
+	printFFANN(tournArray[2]);
+	printFFANN(tournArray[3]);
+	
+	// Now do breeding with probability, e.g. just take one of the best 2 or with prob do breeding between best 2 of tournament
+	float prob = getRandomBiasValueFloat(2.0f, -2.0f); // will get a positive or negative value
+	if(prob > 0.0f){ //50% chance
+		copyIndividual(tournArray[0], superpopulation->newpopulation[newpopMemberIndex]); // just copy a parent to new generation
+	}
+	else{ // Breed
+		
+	}
+	
+}

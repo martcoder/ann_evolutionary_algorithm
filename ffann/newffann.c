@@ -22,9 +22,10 @@ int main(int argc, char * argv[]){
 #ifdef TEST
 	printf("Just initialised variables\n");
 #endif
-	constructNode( &bestInputLayer );
+	/*constructNode( &bestInputLayer );
 	bestHiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax );
 	bestOutputLayer = (Node *) malloc( nodeSizeMemory * outputLayerLength );
+	* */
 	//constructNode( &inputLayer ); // create inputLayer node
 	
 	//hiddenLayer = (Node *) malloc( nodeSizeMemory * hiddenMax  );
@@ -79,10 +80,19 @@ int main(int argc, char * argv[]){
 	printf("Just after filenamesLists populated\n");
 #endif
 
+	
+	constructFFANN(superpopulation.miscpopulation, 0); // create initial best individual
+	constructFFANN(superpopulation.miscpopulation, 1); // create initial sorting individual
+	constructFFANN(superpopulation.miscpopulation, 2); // create initial tournament0 individual
+	constructFFANN(superpopulation.miscpopulation, 3); // create initial tournament1 individual
+	constructFFANN(superpopulation.miscpopulation, 4); // create initial tournament2 individual
+	constructFFANN(superpopulation.miscpopulation, 5); // create initial tournament3 individual
+
 	int c = 0;
 /*	for( c=0; c < numCycles; c++){*/
 	for(c=0; c < popsize; c++){
-		 constructFFANN(&superpopulation,c); // # create initial population
+		 constructFFANN(superpopulation.oldpopulation,c); // # create initial old population citizen empty shells 
+		 constructFFANN(superpopulation.newpopulation,c); // create initial new population citizen empty shells
 		 //printFFANN(superpopulation.oldpopulation[c]);
 	 }
 
@@ -100,7 +110,7 @@ int main(int argc, char * argv[]){
 
 	float eL; float eM; float eH;
 	int m = 0;
-	
+	float bestMemberLMSIndex = 1000.0f;
 	for(c=0;c<2; c++){// # number of cycles of this evolutionary algorithm
 		//#Process the input data through each population member
 		printf("cycle is %d\n",c); //+str(t)+", just about to process member "+str(x))    
@@ -125,16 +135,46 @@ int main(int argc, char * argv[]){
 			process(filenamesList[2][1], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
 			process(filenamesList[2][2], numberOfHighDataFiles, m, eL, eM, eH, normaliseCeiling); //process selected data through an ANN
 			
-			
+			// If the ANN just processed has a better LMS than that found so far... copy it to the best ANN Individual 
+			if( superpopulation.oldpopulation[m]->lms < bestMemberLMSIndex ){
+					bestMemberLMSIndex = superpopulation.oldpopulation[m]->lms; // update current best LMS
+					printf("===========New best ANN found: ===========\n");
+					copyIndividual(superpopulation.oldpopulation[m], superpopulation.miscpopulation[0]); // copy new best to Best Individual 
+					
+					printFFANN( superpopulation.miscpopulation[0] );
+			}
 		}
+		
+		//====================SAVE BEST DETAILS================
+		
+		
+		
+		
+		
+		//=============CREATE NEW GENERATION 
+		
+		//First Elitism
+		copyIndividual(&indX, superpopulation.newpopulation[0] );
+		//m now starts at 1 as elitism took care of index 0... 
+		for(m=1; m < popsize; m++){
+			tournament(&superpopulation, m);
+		}
+		
 		break;
  	}
 
+#ifdef TEST
 	for(c=0; c < popsize; c++){
 		 printf("Now back in main ... to print the freshly minted citizen.....\n");
-		 printFFANN(superpopulation.oldpopulation[c]);
-	 
+		 printFFANN(superpopulation.oldpopulation[c]); 
 	 }
+	 
+	 printf("NOW TESTING COPY FUNCTIONALITY\n");
+	 copyIndividual(superpopulation.oldpopulation[0], superpopulation.newpopulation[0]);
+	 printFFANN( superpopulation.oldpopulation[0] );
+	 printFFANN( superpopulation.newpopulation[0] );
+#endif
+
 /*
 			#Get datafile result as LeastMeanSquared
 			lmsavg = statistics.mean(lmsResult)
