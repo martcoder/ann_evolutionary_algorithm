@@ -375,14 +375,14 @@ void bubbleSort(Individual** arr, int n) //inspired by https://www.geeksforgeeks
         if (swapped == false)
             break;
     }
-#ifdef TESTAUX
+#ifdef AUXTEST
 		printf("Finished bubbleSort function\n");
 #endif
 }
 
 
 void tournament(Population* superpopulation, int newpopMemberIndex){
-	
+	printf("Just about to do a tournament selection\n");
 	//select individuals for tournament ... assuming tournamentSize of 4
 	int index1, index2, index3, index4; 
 	index1 = getRandomIndividualIndex();
@@ -400,40 +400,122 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 	}
 	
 	Individual** tournArray = (Individual**) malloc( individualSizeMemory * tournamentSize );
-	printf("Chosen tournament member indexes are %d %d %d %d\n",index1, index2, index3, index4);
 	
+	#ifdef AUXTEST
+	printf("Chosen tournament member indexes are %d %d %d %d\n",index1, index2, index3, index4);
+	#endif
+	
+	#ifdef AUXTEST
 	printf("About to copy indiv at index %d into tournArray[0]\n",index1);
+	#endif
+	
 	tournArray[0] = &indTourn0;
 	copyIndividual(superpopulation->oldpopulation[index1], tournArray[0]);
 	
-	
+	#ifdef AUXTEST
 	printf("About to copy indiv at index %d into tournArray[1]\n",index2);
+	#endif
+	
 	tournArray[1] = &indTourn1;
 	copyIndividual(superpopulation->oldpopulation[index2], tournArray[1]);
 	
+	#ifdef AUXTEST
 	printf("About to copy indiv at index %d into tournArray[2]\n",index3);
+	#endif
+	
 	tournArray[2] = &indTourn2;
 	copyIndividual(superpopulation->oldpopulation[index3], tournArray[2] );
 	
+	#ifdef AUXTEST
 	printf("About to copy indiv at index %d into tournArray[3]\n",index4);
+	#endif
+	
 	tournArray[3] = &indTourn3;
 	copyIndividual( superpopulation->oldpopulation[index4], tournArray[3]);
 	
 	bubbleSort(tournArray, 4); 
-	
+
+#ifdef AUXTEST
 	printf("sorted tournarray is: \n");
 	printFFANN(tournArray[0]);
 	printFFANN(tournArray[1]);
 	printFFANN(tournArray[2]);
 	printFFANN(tournArray[3]);
+#endif
 	
 	// Now do breeding with probability, e.g. just take one of the best 2 or with prob do breeding between best 2 of tournament
 	float prob = getRandomBiasValueFloat(2.0f, -2.0f); // will get a positive or negative value
 	if(prob > 0.0f){ //50% chance
 		copyIndividual(tournArray[0], superpopulation->newpopulation[newpopMemberIndex]); // just copy a parent to new generation
 	}
-	else{ // Breed
+	else{ // Breed, by copying input and output layer from one parent, and hidden layer from other parent!
+		// Firstly copy everything from parent0
+		copyIndividual(tournArray[0], superpopulation->newpopulation[newpopMemberIndex]);
 		
+		// Now overwrite the hidden layer with details from parent1
+		superpopulation->newpopulation[newpopMemberIndex]->numberOfHiddenNodes = tournArray[1]->numberOfHiddenNodes;
+		int n = 0; 
+		for(n=0; n < tournArray[1]->numberOfHiddenNodes; n++){
+			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->weight = tournArray[1]->hiddenLayer[n]->weight;
+			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->bias = tournArray[1]->hiddenLayer[n]->bias;
+		}
+		
+		//Now update output layer weights array for each output node to be same length as hidden layer
+		int o = 0;
+		for(o=0; o < superpopulation->newpopulation[newpopMemberIndex]->numberOfOutputNodes; o++){
+			for(n=0; n < superpopulation->newpopulation[newpopMemberIndex]->numberOfHiddenNodes; n++){
+				#ifdef AUXTEST
+					printf("weight in outputNode %d is currently %f\n",o,superpopulation->newpopulation[newpopMemberIndex]->outputLayer[o]->weights[n]);
+				#endif
+					if( (-0.0001f < superpopulation->newpopulation[newpopMemberIndex]->outputLayer[o]->weights[n]) 
+							&& 
+							( superpopulation->newpopulation[newpopMemberIndex]->outputLayer[o]->weights[n] < 0.0001f )
+						){ // Checking if the weight value is zero, then will need to set a value. e.g. if parent0 hiddenLayer was shorter than parent1 hidden layer
+							superpopulation->newpopulation[newpopMemberIndex]->outputLayer[o]->weights[n] = getRandomWeightValueFloat();
+					}
+					#ifdef AUXTEST
+					printf("If setting was necessary that same weight in outputNode %d is currently %f\n",o,superpopulation->newpopulation[newpopMemberIndex]->outputLayer[o]->weights[n]);
+					#endif
+			}
+		}
 	}
-	
+}
+
+void mutate(Individual* member){
+		printf("////****////  Mutating... ////****/////***** \n");
+			float prob = getRandomBiasValueFloat(3.0f, -3.0f);
+			if( prob < 0.0f ){ //50% chance of mutation
+					member->inputLayer->weight = getRandomWeightValueFloat();
+			}
+			
+			prob = getRandomBiasValueFloat(3.0f, -3.0f);
+			if( prob < 0.0f ){ //50% chance of mutation
+					member->inputLayer->bias = getRandomWeightValueFloat();
+			}
+			
+			int h = 0;
+			for(h = 0; h < member->numberOfHiddenNodes; h++){
+					prob = getRandomBiasValueFloat(3.0f, -3.0f);
+					if( prob < 0.0f ){ //50% chance of mutation
+							member->hiddenLayer[h]->weight = getRandomWeightValueFloat();
+					}
+					prob = getRandomBiasValueFloat(3.0f, -3.0f);
+					if( prob < 0.0f ){ //50% chance of mutation
+							member->hiddenLayer[h]->bias = getRandomWeightValueFloat();
+					}
+			}
+			
+			int o = 0;
+			for(o=0; o < member->numberOfOutputNodes; o++){
+					prob = getRandomBiasValueFloat(3.0f, -3.0f);
+					if( prob < 0.0f ){ //50% chance of mutation
+								member->outputLayer[o]->bias = getRandomWeightValueFloat();
+					}
+					for(h=0; h < member->numberOfHiddenNodes; h++){
+						prob = getRandomBiasValueFloat(3.0f, -3.0f);
+						if( prob < 0.0f ){ //50% chance of mutation
+								member->outputLayer[o]->weights[h] = getRandomWeightValueFloat();
+						}
+					}
+			}
 }

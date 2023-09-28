@@ -156,11 +156,26 @@ int main(int argc, char * argv[]){
 		//First Elitism
 		copyIndividual(&indX, superpopulation.newpopulation[0] );
 		//m now starts at 1 as elitism took care of index 0... 
+		
+		//Now Tournament Selection and breeding
 		for(m=1; m < popsize; m++){
+			printf("Adding member %d to newpopulation\n",m);
+			// Tournament selection and breeding
 			tournament(&superpopulation, m);
+			
+			// Probability of mutation 
+			float prob = getRandomBiasValueFloat(3.0f, -1.0f);
+			if( prob < 0.0f ){ //25% chance of mutation
+				printf("ANN before mutation is :\n");
+				printFFANN( superpopulation.newpopulation[m] );
+				mutate( superpopulation.newpopulation[m] );
+				printf("ANN after mutation is :\n");
+				printFFANN( superpopulation.newpopulation[m] );
+			}
+			superpopulation.newpopulation[m]->lms = 9999.9f; // need to reset this as breeding and mutation will change the lms score
 		}
 		
-		break;
+		
  	}
 
 #ifdef TEST
