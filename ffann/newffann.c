@@ -111,12 +111,13 @@ int main(int argc, char * argv[]){
 	float eL; float eM; float eH;
 	int m = 0;
 	float bestMemberLMSIndex = 1000.0f;
-	for(c=0;c<2; c++){// # number of cycles of this evolutionary algorithm
+	for(c=0;c<numCycles; c++){// # number of cycles of this evolutionary algorithm
 		//#Process the input data through each population member
 		printf("cycle is %d\n",c); //+str(t)+", just about to process member "+str(x))    
 
 		for(m=0; m < popsize; m++){ // #e.g. for each member FFANN, process it
 			printf("Just about to process member %d\n",m);
+			superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing
 			//#print("length of hidden layer is "+str(len(hiddenLayer)))
 			//#Run through each line of data in each datafile
 			eL = 1.0f; eM = 0.0f; eH = 0.0f; // low pressure is expected result
@@ -142,6 +143,8 @@ int main(int argc, char * argv[]){
 					copyIndividual(superpopulation.oldpopulation[m], superpopulation.miscpopulation[0]); // copy new best to Best Individual 
 					
 					printFFANN( superpopulation.miscpopulation[0] );
+					// Now also write the best ANN to file
+					writeFFANNtoFile( superpopulation.miscpopulation[0] );
 			}
 		}
 		
@@ -166,16 +169,24 @@ int main(int argc, char * argv[]){
 			// Probability of mutation 
 			float prob = getRandomBiasValueFloat(3.0f, -1.0f);
 			if( prob < 0.0f ){ //25% chance of mutation
+#ifdef TEST
 				printf("ANN before mutation is :\n");
 				printFFANN( superpopulation.newpopulation[m] );
+#endif
 				mutate( superpopulation.newpopulation[m] );
+#ifdef TEST
 				printf("ANN after mutation is :\n");
 				printFFANN( superpopulation.newpopulation[m] );
+#endif
 			}
-			superpopulation.newpopulation[m]->lms = 9999.9f; // need to reset this as breeding and mutation will change the lms score
+			superpopulation.newpopulation[m]->lms = 0.0f; // need to reset this as breeding and mutation will change the lms score
 		}
 		
-		
+		// Finally copy the new generation into the old generation array
+		int c = 0;
+		for(c=0; c < popsize; c++){
+				copyIndividual(superpopulation.newpopulation[c], superpopulation.oldpopulation[c]);
+		}
  	}
 
 #ifdef TEST

@@ -80,7 +80,7 @@ void initialiseVariables(){
 	numberOfHighDataFiles = 3;
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
-	popsize = 6;
+	popsize = 180;
 	hiddenMax = 20;
 	hiddenMin = 5;
 	outputLayerLength = 3;

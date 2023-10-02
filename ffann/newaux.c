@@ -213,8 +213,11 @@ void process( char * filename, int listLength, int member, float expectedResultL
 				superpopulation.oldpopulation[member]->lms += normalisedLms( superpopulation.oldpopulation[member]->outputLayer[0]->output, superpopulation.oldpopulation[member]->outputLayer[1]->output, superpopulation.oldpopulation[member]->outputLayer[2]->output, expectedResultLow, expectedResultMed, expectedResultHigh) / dataCount;
 				//printf("LMS is current %f\n",superpopulation.oldpopulation[member]->lms);
     }
-
-   free(line);
+     // Refer: https://stackoverflow.com/questions/3501338/c-read-file-line-by-line
+		fclose(fp);
+		if( line ){
+			free(line);
+		}
    //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
 		
 }
@@ -231,6 +234,34 @@ void printNode(Node* paramNode, int printWeightsArray, int numberHidden){
 		}
 		printf("\n");
 	}
+}
+
+void writeFFANNtoFile(Individual* citizen){
+		FILE* fp;
+		fp = fopen("log.txt", "a");
+		fprintf(fp, "========Best ANN Found Details =========: \n");
+		fprintf(fp, "Input layer: \n");
+		fprintf(fp, "Input weight: %f, input bias: %f \n",citizen->inputLayer->weight, citizen->inputLayer->bias);
+		fprintf(fp, "Input weight: %f, input bias: %f \n",citizen->inputLayer->weight, citizen->inputLayer->bias);
+		int c,d; 
+		for(c=0; c < citizen->numberOfHiddenNodes; c++){
+			fprintf(fp, "\nHidden layer node %d:- weight: %f, bias: %f\n",c, citizen->hiddenLayer[c]->weight, citizen->hiddenLayer[c]->bias);
+			
+		}
+		
+		for(c=0; c < citizen->numberOfOutputNodes; c++){
+				fprintf(fp, "\nOutput layer node %d :-  bias: %f \n", c, citizen->outputLayer[c]->bias);
+				fprintf(fp, "Weights: \n");
+				for(d=0; d < citizen->numberOfHiddenNodes; d++){
+					fprintf( fp, "w%d=%f, ",d,citizen->outputLayer[c]->weights[d]);
+				}
+				fprintf(fp, "\n");
+		}
+		
+		fprintf(fp,"\nLMS is: %f\n\n", citizen->lms);
+
+    // close file
+    fclose(fp);
 }
 
 void printFFANN(Individual* citizen){
