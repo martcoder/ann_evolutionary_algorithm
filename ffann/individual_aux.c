@@ -210,6 +210,27 @@ void copyIndividual(Individual* from, Individual* to){
 #endif
 }
 
+
+Individual indX; // for best
+
+Individual indSort; // for sorting during tournament
+
+// note that these are put through a constructFFANN function 
+// ... in main just before the evolutionary algorithm starts
+// ... and ALSO get added to the miscpopulation just after the 
+// ... in depth declaration of their hidden layers etc 
+// .... inside the addIndividualsToPopulations() function. 
+Individual indTourn0;
+Individual indTourn1;
+Individual indTourn2;
+Individual indTourn3;
+Individual indTourn4;
+Individual indTourn5;
+Individual indTourn6;
+Individual indTourn7;
+
+
+
 Individual ind0;
 Individual ind1;
 Individual ind2;
@@ -610,19 +631,6 @@ Individual ind396;
 Individual ind397;
 Individual ind398;
 Individual ind399;
-
-Individual indX; // for best
-
-Individual indSort; // for sorting during tournament
-
-Individual indTourn0;
-Individual indTourn1;
-Individual indTourn2;
-Individual indTourn3;
-Individual indTourn4;
-Individual indTourn5;
-Individual indTourn6;
-Individual indTourn7;
 
 
 void addIndividualsToPopulations(Population* superpopulation){
@@ -1170,6 +1178,10 @@ superpopulation->miscpopulation[2] = &indTourn0;
 superpopulation->miscpopulation[3] = &indTourn1;
 superpopulation->miscpopulation[4] = &indTourn2;
 superpopulation->miscpopulation[5] = &indTourn3;
+superpopulation->miscpopulation[6] = &indTourn4;
+superpopulation->miscpopulation[7] = &indTourn5;
+superpopulation->miscpopulation[8] = &indTourn6;
+superpopulation->miscpopulation[9] = &indTourn7;
 
 #ifdef AUXTEST
 	printf("Just about to add individuals to oldpopulation\n");

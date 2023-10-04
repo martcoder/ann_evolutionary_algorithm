@@ -1,0 +1,26 @@
+========Best ANN Found Details =========: 
+Input layer: 
+Input weight: 0.317660, input bias: -0.247538 
+Input weight: 0.317660, input bias: -0.247538 
+
+Hidden layer node 0:- weight: 0.633747, bias: -0.037416
+
+Hidden layer node 1:- weight: 0.709379, bias: -0.245840
+
+Hidden layer node 2:- weight: 0.435035, bias: -0.197642
+
+Hidden layer node 3:- weight: 1.010151, bias: -0.358086
+
+Output layer node 0 :-  bias: -0.219934 
+Weights: 
+w0=1.889650, w1=0.670691, w2=0.549869, w3=0.613172, 
+
+Output layer node 1 :-  bias: -0.173774 
+Weights: 
+w0=0.696964, w1=0.169042, w2=1.736934, w3=0.300173, 
+
+Output layer node 2 :-  bias: -0.098216 
+Weights: 
+w0=1.527349, w1=1.275964, w2=0.405519, w3=0.499435, 
+
+LMS is: 0.000011

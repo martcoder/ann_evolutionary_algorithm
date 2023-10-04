@@ -104,6 +104,10 @@ int main(int argc, char * argv[]){
 	constructFFANN(superpopulation.miscpopulation, 3); // create initial tournament1 individual
 	constructFFANN(superpopulation.miscpopulation, 4); // create initial tournament2 individual
 	constructFFANN(superpopulation.miscpopulation, 5); // create initial tournament3 individual
+	constructFFANN(superpopulation.miscpopulation, 6); // create initial tournament4 individual
+	constructFFANN(superpopulation.miscpopulation, 7); // create initial tournament5 individual
+	constructFFANN(superpopulation.miscpopulation, 8); // create initial tournament6 individual
+	constructFFANN(superpopulation.miscpopulation, 9); // create initial tournament7 individual
 
 	int c = 0;
 /*	for( c=0; c < numCycles; c++){*/
