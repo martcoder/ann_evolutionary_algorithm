@@ -16,6 +16,7 @@
 
 int main(int argc, char * argv[]){
 	
+	//printf("Run this like /.new.exe a f"); //where a specifies accelerometer data, f specifies fft data
 	srand((unsigned int)time(NULL)); // needed for random number generation...
 	
 	initialiseVariables(); // 
@@ -52,10 +53,26 @@ int main(int argc, char * argv[]){
 #endif
 		chosenSensor = 0; // 0 is for accelerometer, 1 is for lidar. 
 		normaliseCeiling = 300.0f; // based on empirical evidence... 
-		strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
-		strcpy(filenamesListMiddle[0],"Accel30psi.data"); strcpy(filenamesListMiddle[1],"Accel35psi.data"); strcpy(filenamesListMiddle[2],"Accel40psi.data"); strcpy(filenamesListMiddle[3],"Accel45psi.data");
-		strcpy(filenamesListHigh[0],"Accel50psi.data"); strcpy(filenamesListHigh[1],"Accel55psi.data"); strcpy(filenamesListHigh[2],"Accel60psi.data");
-	}
+		if( !strcmp(argv[2],"f") ){
+#ifdef TEST
+		printf("FFT data chosen\n");
+#endif			
+		
+			normaliseCeiling = 250.0f; // based on empirical evidence for accel fft data
+			strcpy(filenamesListLow[0],"fftAccel15psi.data"); strcpy(filenamesListLow[1],"fftAccel20psi.data"); strcpy(filenamesListLow[2],"fftAccel25psi.data");
+			strcpy(filenamesListMiddle[0],"fftAccel30psi.data"); strcpy(filenamesListMiddle[1],"fftAccel35psi.data"); strcpy(filenamesListMiddle[2],"fftAccel40psi.data"); strcpy(filenamesListMiddle[3],"fftAccel45psi.data");
+			strcpy(filenamesListHigh[0],"fftAccel50psi.data"); strcpy(filenamesListHigh[1],"fftAccel55psi.data"); strcpy(filenamesListHigh[2],"fftAccel60psi.data");
+
+		}
+		else{
+			strcpy(filenamesListLow[0],"fftAccel15psi.data"); strcpy(filenamesListLow[1],"fftAccel20psi.data"); strcpy(filenamesListLow[2],"fftAccel25psi.data");
+			strcpy(filenamesListMiddle[0],"fftAccel30psi.data"); strcpy(filenamesListMiddle[1],"fftAccel35psi.data"); strcpy(filenamesListMiddle[2],"fftAccel40psi.data"); strcpy(filenamesListMiddle[3],"fftAccel45psi.data");
+			strcpy(filenamesListHigh[0],"fftAccel50psi.data"); strcpy(filenamesListHigh[1],"fftAccel55psi.data"); strcpy(filenamesListHigh[2],"fftAccel60psi.data");
+
+			
+		}
+
+			}
 	else if( !strcmp(argv[1],"l") ){
 #ifdef TEST
 		printf("Lidar data chosen\n");

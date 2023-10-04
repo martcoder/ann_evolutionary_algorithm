@@ -475,8 +475,8 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 #endif
 	
 	// Now do breeding with probability, e.g. just take one of the best 2 or with prob do breeding between best 2 of tournament
-	float prob = getRandomBiasValueFloat(2.0f, -2.0f); // will get a positive or negative value
-	if(prob > 0.0f){ //50% chance
+	float prob = getRandomBiasValueFloat(1.0f, -9.0f); // will get a positive or negative value
+	if(prob > 0.0f){ //10% chance of just copying individual as is... very boring thing to happen
 		copyIndividual(tournArray[0], superpopulation->newpopulation[newpopMemberIndex]); // just copy a parent to new generation
 	}
 	else{ // Breed, by copying input and output layer from one parent, and hidden layer from other parent!

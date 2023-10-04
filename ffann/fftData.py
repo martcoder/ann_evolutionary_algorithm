@@ -7,11 +7,22 @@ import statistics
 
 import sys
 
-sr = 2000
+print("Run this script like: python3 fftData.py filename a|l")
+
+accelUpperCeiling = 300.0
+lidarUpperCeiling = 500.0
+upperCeiling = 400.0
+sr = 1000
 
 #filename = input("Enter filename to process: ")
 
 filename = sys.argv[1]
+
+if sys.argv[2] == 'a':
+  upperCeiling = accelUpperCeiling
+
+if sys.argv[2]  == 'l':
+  upperCeiling = lidarUpperCeiling
 
 with open(filename, 'r') as file: 
   sampleBatch = []
@@ -20,16 +31,28 @@ with open(filename, 'r') as file:
   maxs15 = []
   maxIndexs15 = []
   modes15 = []
+  stddevs = []
+
+  upperMax = 0.0
 
   for line in file:
     line = line.strip()
     line = line.split(",")
     data = float( line[0] )
+    if( data > 300.0 ):
+      data = upperCeiling #limit to upper ceiling
+    data = data / upperCeiling #normalise
     sampleBatch.append( data )
     counter = counter + 1
-    if counter > 1999:
+    if counter > 999:
       counter = 0
       X = fft( sampleBatch )
+      toWrite = np.abs(X[0:499])
+      fileToWrite = open("fft"+filename, "a")
+      for r in range(len(toWrite)):
+        if float(toWrite[r]) > upperMax:
+          upperMax = float(toWrite[r])
+        fileToWrite.write( str(toWrite[r])+"\n"  )
       N = len( X )
       n = np.arange(N)
       T = N / sr
@@ -39,21 +62,28 @@ with open(filename, 'r') as file:
       #print( "Lenght of frequencies is "+str( len(freq)  )+" and freq value 5 is "+str(freq[5]) )
       #print("Also databatch first three vals are: "+str(sampleBatch[0])+" "+str(sampleBatch[1])+" "+str(sampleBatch[2]) )
       #print("Frequences: mean amplitude is "+str( statistics.mean( np.abs(X[1:]) ) )+", and max freq is "+str( max( np.abs(X[1:]) ) )+" at freq "+str(  (np.abs(X[1:])).argmax() )+", and mode amplitude is "+str( statistics.mode((np.abs(X[1:]))) ) )
-      means15.append(statistics.mean( np.abs(X[1:]) ))
-      maxs15.append(max( np.abs(X[1:]) ))
-      maxIndexs15.append((np.abs(X[1:])).argmax())
-      modes15.append( statistics.mode( (np.abs(X[1:])) )  )
+      over5000 = np.abs(X) # np.extract( np.abs(X[1:500]) > 5000, np.abs(X[1:500]) )
+      means15.append(statistics.mean( over5000 ))
+      maxs15.append(max( over5000 ))
+      maxIndexs15.append(over5000.argmax())
+      modes15.append( statistics.mode( (over5000) )  )
+      stddevs.append( statistics.stdev( over5000) ) 
       '''
       plot.figure( figsize = (14,7))
       plot.stem(freq, np.abs(X), 'b', markerfmt=" ", basefmt="-b")
       plot.xlabel('Frequency in Hz')
       plot.ylabel('FFT Amplitude')
-      plot.xlim(0,1000)
-      #plot.show()
+      plot.xlim(0,499)
+      plot.show()
       '''
 
       sampleBatch.clear()
 
       
 
-print("Median of the max frequency is "+str( statistics.median(maxIndexs15) )+", and mean of it is "+str( statistics.mean( maxIndexs15  )  ) )
+print("Avg of max amps mean and median is "+str( ( statistics.median( maxs15 )  + statistics.mean( maxs15 )  ) / 2.0  ) )
+print("Median of max amp is "+str( statistics.median( maxs15 ) )+", mean of max amp is "+str( statistics.mean(maxs15)  )+", mode of max amp: "+str( statistics.mode(maxs15)  )+", and stdev of maxamps: "+str( statistics.stdev(maxs15)  ) )
+print("Median of the max frequency is "+str( statistics.median(maxIndexs15) )+", and mean of it is "+str( statistics.mean( maxIndexs15  )  )+", mode of it is"+str( statistics.mode(maxIndexs15)   )+", stdev of it is "+str( statistics.stdev(maxIndexs15)  ) )
+print("Median stddev is "+str( statistics.median(stddevs)  )+", mode stddev is "+str( statistics.median(stddevs)  ) )
+
+print("upper max is "+str(upperMax) )
