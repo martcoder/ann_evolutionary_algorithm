@@ -184,8 +184,8 @@ int main(int argc, char * argv[]){
 			tournament(&superpopulation, m);
 			
 			// Probability of mutation 
-			float prob = getRandomBiasValueFloat(3.0f, -1.0f);
-			if( prob < 0.0f ){ //25% chance of mutation
+			float prob = getRandomBiasValueFloat(2.0f, -2.0f);
+			if( prob < 0.0f ){ //50% chance of mutation
 #ifdef TEST
 				printf("ANN before mutation is :\n");
 				printFFANN( superpopulation.newpopulation[m] );
