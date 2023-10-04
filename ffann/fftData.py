@@ -52,7 +52,7 @@ with open(filename, 'r') as file:
       for r in range(len(toWrite)):
         if float(toWrite[r]) > upperMax:
           upperMax = float(toWrite[r])
-        fileToWrite.write( str(toWrite[r])+"\n"  )
+        fileToWrite.write( str(toWrite[r])+",\n"  )
       N = len( X )
       n = np.arange(N)
       T = N / sr

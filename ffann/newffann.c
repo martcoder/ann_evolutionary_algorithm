@@ -65,14 +65,14 @@ int main(int argc, char * argv[]){
 
 		}
 		else{
-			strcpy(filenamesListLow[0],"fftAccel15psi.data"); strcpy(filenamesListLow[1],"fftAccel20psi.data"); strcpy(filenamesListLow[2],"fftAccel25psi.data");
-			strcpy(filenamesListMiddle[0],"fftAccel30psi.data"); strcpy(filenamesListMiddle[1],"fftAccel35psi.data"); strcpy(filenamesListMiddle[2],"fftAccel40psi.data"); strcpy(filenamesListMiddle[3],"fftAccel45psi.data");
-			strcpy(filenamesListHigh[0],"fftAccel50psi.data"); strcpy(filenamesListHigh[1],"fftAccel55psi.data"); strcpy(filenamesListHigh[2],"fftAccel60psi.data");
+			strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
+			strcpy(filenamesListMiddle[0],"Accel30psi.data"); strcpy(filenamesListMiddle[1],"Accel35psi.data"); strcpy(filenamesListMiddle[2],"Accel40psi.data"); strcpy(filenamesListMiddle[3],"Accel45psi.data");
+			strcpy(filenamesListHigh[0],"Accel50psi.data"); strcpy(filenamesListHigh[1],"Accel55psi.data"); strcpy(filenamesListHigh[2],"Accel60psi.data");
 
 			
 		}
 
-			}
+	}
 	else if( !strcmp(argv[1],"l") ){
 #ifdef TEST
 		printf("Lidar data chosen\n");

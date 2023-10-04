@@ -144,6 +144,10 @@ void getFirstFloat(char * lineOfData, float * result, float normaliseCeiling){
 void process( char * filename, int listLength, int member, float expectedResultLow, float expectedResultMed, float expectedResultHigh, float normaliseCeiling  ){
 	int c = 0; 
 	
+#ifdef TEST
+printf("Just started process function...\n");
+#endif
+	
 		FILE *fp;
     char *line = NULL;
     size_t len = 0;
@@ -154,6 +158,11 @@ void process( char * filename, int listLength, int member, float expectedResultL
 				printf("An issue occured when reading in the data file\n");
         exit(EXIT_FAILURE);
 		}
+		
+		
+#ifdef TEST
+printf("Just about to read datafile  line by line...\n");
+#endif
 	 
 	 float dataCount = 0;
    while ((read = getline(&line, &len, fp)) != -1) {
