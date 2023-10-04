@@ -425,6 +425,7 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 	printf("Just about to do a tournament selection\n");
 	//select individuals for tournament ... assuming tournamentSize of 4
 	int index1, index2, index3, index4; 
+	int index5, index6, index7, index8;
 	index1 = getRandomIndividualIndex();
 	index2 = getRandomIndividualIndex();
 	while(index2 == index1){
@@ -439,10 +440,30 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 		index4 = getRandomIndividualIndex();
 	}
 	
+	index5 = getRandomIndividualIndex(); 
+	while( (index5 == index4) || (index5 == index3) || (index5 == index2) || (index5 == index1) ){
+		index5 = getRandomIndividualIndex();
+	}
+	
+	index6 = getRandomIndividualIndex(); 
+	while( (index6 == index5) || (index6 == index4) || (index6 == index3) || (index6 == index2) || (index6 == index1) ){
+		index6 = getRandomIndividualIndex();
+	}
+	
+	index7 = getRandomIndividualIndex(); 
+	while( (index7 == index6) || (index7 == index5) || (index7 == index4) || (index7 == index3) || (index7 == index2) || (index7 == index1) ){
+		index7 = getRandomIndividualIndex();
+	}
+	
+	index8 = getRandomIndividualIndex(); 
+	while( (index8 == index7) || (index8 == index6) || (index8 == index5) || (index8 == index4) || (index8 == index3) || (index8 == index2) || (index8 == index1) ){
+		index8 = getRandomIndividualIndex();
+	}
+	
 	Individual** tournArray = (Individual**) malloc( individualSizeMemory * tournamentSize );
 	
 	#ifdef AUXTEST
-	printf("Chosen tournament member indexes are %d %d %d %d\n",index1, index2, index3, index4);
+	printf("Chosen tournament member indexes are %d %d %d %d %d %d %d %d\n",index1, index2, index3, index4, index5, index6, index7, index8);
 	#endif
 	
 	#ifdef AUXTEST
@@ -473,7 +494,35 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 	tournArray[3] = &indTourn3;
 	copyIndividual( superpopulation->oldpopulation[index4], tournArray[3]);
 	
-	bubbleSort(tournArray, 4); 
+	#ifdef AUXTEST
+	printf("About to copy indiv at index %d into tournArray[4]\n",index5);
+	#endif
+	
+	tournArray[4] = &indTourn4;
+	copyIndividual( superpopulation->oldpopulation[index5], tournArray[4]);
+	
+	#ifdef AUXTEST
+	printf("About to copy indiv at index %d into tournArray[5]\n",index6);
+	#endif
+	
+	tournArray[5] = &indTourn5;
+	copyIndividual( superpopulation->oldpopulation[index6], tournArray[5]);
+	
+	#ifdef AUXTEST
+	printf("About to copy indiv at index %d into tournArray[6]\n",index7);
+	#endif
+	
+	tournArray[6] = &indTourn6;
+	copyIndividual( superpopulation->oldpopulation[index7], tournArray[6]);
+	
+	#ifdef AUXTEST
+	printf("About to copy indiv at index %d into tournArray[7]\n",index8);
+	#endif
+	
+	tournArray[7] = &indTourn7;
+	copyIndividual( superpopulation->oldpopulation[index8], tournArray[7]);
+	
+	bubbleSort(tournArray, tournamentSize); 
 
 #ifdef AUXTEST
 	printf("sorted tournarray is: \n");
@@ -481,11 +530,16 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 	printFFANN(tournArray[1]);
 	printFFANN(tournArray[2]);
 	printFFANN(tournArray[3]);
+	printFFANN(tournArray[4]);
+	printFFANN(tournArray[5]);
+	printFFANN(tournArray[6]);
+	printFFANN(tournArray[7]);
 #endif
 	
 	// Now do breeding with probability, e.g. just take one of the best 2 or with prob do breeding between best 2 of tournament
-	float prob = getRandomBiasValueFloat(2.5f, -7.5f); // will get a positive or negative value
-	if(prob > 0.0f){ //25% chance of just copying individual as is... very boring thing to happen
+	float prob = getRandomBiasValueFloat(1.0f, -2.0f); // will get a positive or negative value
+	if(prob > 0.0f){ //33% chance of just copying individual as is... very boring thing to happen
+		// tournArray[0] contains the individual with the best lms, e.g. the lowest, due to bubblesort!!!
 		copyIndividual(tournArray[0], superpopulation->newpopulation[newpopMemberIndex]); // just copy a parent to new generation
 	}
 	else{ // Breed, by copying input and output layer from one parent, and hidden layer from other parent!
