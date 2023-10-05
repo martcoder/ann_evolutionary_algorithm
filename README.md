@@ -18,7 +18,7 @@ a score, then uses the found score to create the next generation through
 evolutionary techniques such as elitism, breeding through tournaments, 
 and mutation with probability. 
 
-The algorithm itself is implemented in C. 
+The algorithm itself is implemented in C. The artifical neural networks are feed-forward ANNs. 
 
 Some python scripts are also present as they were useful in automatically generating hundreds of struct 
 declarations in the C code file (as C doesn't have dynamic arrays, the approach taken was to declare the
