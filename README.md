@@ -1,10 +1,12 @@
 # ann_evolutionary_algorithm
 
 ===TITLE=========================
+
 Artificial Neural Network Training System using an Evolutionary Algorithm
 
 
 ===LICENSE=======================
+
 The software in this repository may be distributed under the Lesser GPL License, which can be found in this 
 same repository. 
 
