@@ -1,5 +1,13 @@
 # ann_evolutionary_algorithm
+
+===TITLE=========================
 Artificial Neural Network Training System using an Evolutionary Algorithm
+
+
+===LICENSE=======================
+The software in this repository may be distributed under the Lesser GPL License, which can be found in this 
+same repository. 
+
 
 ===BACKGROUND====================
 - Primer on Evolutionary Algorithms (from a different author): https://www.section.io/engineering-education/introduction-to-evolutionary-algorithms/ 
@@ -9,6 +17,7 @@ Artificial Neural Network Training System using an Evolutionary Algorithm
   The data filenames are hardcoded in the C code (so this would need manually altering if you want to use other data filenames), but their format is
   expected to be the data value followed by a comma for each line, and the C code reads up to the first comma for each line of the data file before
   converting each into a datapoint. 
+
 
 ===PROJECT OVERVIEW==============
 This project trains an artificial neural network by making use of an 
@@ -24,6 +33,7 @@ so far is included in the FFANN folder.
 Some python scripts are also present as they were useful in automatically generating hundreds of struct 
 declarations in the C code file (as C doesn't have dynamic arrays, the approach taken was to declare the
 maximum amount of structs needed, then use up to that maximum when executing). 
+
 
 ===COMPILING AND RUNNING=========
 
