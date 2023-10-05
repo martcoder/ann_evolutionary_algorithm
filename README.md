@@ -18,13 +18,15 @@ a score, then uses the found score to create the next generation through
 evolutionary techniques such as elitism, breeding through tournaments, 
 and mutation with probability. 
 
-The algorithm itself is implemented in C. The artifical neural networks are feed-forward ANNs. 
+The algorithm itself is implemented in C. The artifical neural networks are feed-forward ANNs, therefore the code 
+so far is included in the FFANN folder. 
 
 Some python scripts are also present as they were useful in automatically generating hundreds of struct 
 declarations in the C code file (as C doesn't have dynamic arrays, the approach taken was to declare the
 maximum amount of structs needed, then use up to that maximum when executing). 
 
 ===COMPILING AND RUNNING=========
+
     ENVIRONMENT:- The project was built on linux for ease of access to a C compiler. 
 
     COMPILING:--- Included in the repository is a compile.sh shell script, which can be ran using: 
