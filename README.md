@@ -32,19 +32,36 @@ and mutation with probability.
 The algorithm itself is implemented in C. The artifical neural networks are feed-forward ANNs, therefore the code 
 so far is included in the FFANN folder. 
 
+The algorithm has been implemented to allow two different modes of functionality:
+Mode0- linear regression
+Mode1- tri-classification of data
+
 Some python scripts are also present as they were useful in automatically generating hundreds of struct 
 declarations in the C code file (as C doesn't have dynamic arrays, the approach taken was to declare the
-maximum amount of structs needed, then use up to that maximum when executing). 
+maximum amount of structs needed, then use up to that maximum when executing). They also proved useful
+for generating data to test with, and also for plotting graphs of results. 
 
 
 ===COMPILING AND RUNNING=========
 
+    C CODE FILES:-  algorithm.c, algorithm_aux.c, and declarations_aux.c
+      
+    Python CODE FILES:- plotData.py  writeLinearData.py and more...
+
+    Bash CODE FILES:- compile.sh  runAlgo.sh
+            
     ENVIRONMENT:- The project was built on linux for ease of access to a C compiler. 
 
     COMPILING:--- Included in the repository is a compile.sh shell script, which can be ran using: 
                   source compile.sh
-    EXECUTING:--- The compile script generates new.exe, which can then be executed as follows: 
-                  ./new.exe a f
+
+    EXECUTING:--- The compile script generates algorithm.exe, which can then be executed as follows: 
+                  ./algorithm.exe a f  OR ./algorithm.exe r
                   where a tells the program to use accelerometer data
                   where f tells the program to use specifically the fft-processed accel data
                   (including another letter in place of f will therefore use the raw accel data)
+                  where r tells the program to do linear regression and use linear datafile
+
+    QUICKSTART:-- The following command compiles the code, runs the code, then also graphs the 
+                  results, using default option of doing linear regression: 
+                  source runAlgo.sh
