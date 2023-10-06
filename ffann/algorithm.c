@@ -227,6 +227,25 @@ int main(int argc, char * argv[]){
 		process(linearDataFilename, filenameWrite, 0, linR, eL, eM, eH, normaliseCeiling, oneTime); 
 		printf("Also see %s for details of one-time run-through output of best ANN\n",filenameWrite);
 	}
+	else{
+			oneTime = 1; // setting this for a one-time run-through of data throug best ANN and logging of outputs
+			process(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
+				
+				eL = 0.0f; eM = 1.0f; eH = 0.0f; // medium pressure is expected result
+				process(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				
+				eL = 0.0f; eM = 0.0f; eH = 1.0f; // high pressure is expected result
+				process(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				process(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+
+			printf("Also see %s for details of one-time run-through output of best ANN\n",filenameWrite);
+	}
 
 #ifdef TEST
 	for(c=0; c < popsize; c++){
