@@ -1,6 +1,6 @@
 # ann_evolutionary_algorithm
 
-===TITLE=========================
+===PROJECT TITLE=================
 
 Artificial Neural Network Training System using an Evolutionary Algorithm
 
@@ -46,7 +46,7 @@ for generating data to test with, and also for plotting graphs of results.
 
     C CODE FILES:-  algorithm.c, algorithm_aux.c, and declarations_aux.c
       
-    Python CODE FILES:- plotData.py  writeLinearData.py and more...
+    Python CODE FILES:- plotData.py  writeLinearData.py and more....
 
     Bash CODE FILES:- compile.sh  runAlgo.sh
             
