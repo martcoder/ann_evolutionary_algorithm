@@ -25,7 +25,7 @@ void initialiseVariables(){
 	linR = 0; // Default is that linear regression is not being solved, in main sets to 1 if linear regression cmd line arg set
 	oneTime = 0; // Default of 0, generally not running data through an ANN one-time, but processing for the algorithm
 	expectedResultRegression = 0.0f;
-	numberActivationFunctions = 3;
+	numberActivationFunctions = 4;
 	
 	numberOfLowDataFiles = 3;
 	numberOfMedDataFiles = 4;
@@ -39,7 +39,7 @@ void initialiseVariables(){
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 499; //global variable
+	numCycles = 999; //global variable
 	nodeSizeMemory = ( sizeof(float) * 6 ) + (sizeof(int)) + ( sizeof(float) * hiddenMax );
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
 	
@@ -81,6 +81,14 @@ float activation_cosh(float value){
 		return cosh(value);
 }
 
+float activation_tanh(float value){
+		return tanh(value);
+}
+
+float activation_sinh(float value){
+		return sinh(value);
+}
+
 int getRandomNumberHiddenNodesInt(){
 	return (rand() % (hiddenMax - hiddenMin + 1)) + hiddenMin;
 }
@@ -95,13 +103,16 @@ int getRandomActivationFunction(){
 
 float processActivationFunction(Node* nodeactivate, float input){
 		if( nodeactivate->activationFunction == 1){
-				return sigmoid(input);
-		}
-		if( nodeactivate->activationFunction == 2){
 				return relu(input);
 		}
+		if( nodeactivate->activationFunction == 2){
+				return sigmoid(input);
+		}
 		if( nodeactivate->activationFunction == 3){
-				return activation_cosh(input);
+				return activation_tanh(input);
+		}
+		if( nodeactivate->activationFunction == 4){
+				return activation_sinh(input);
 		}
 }
 
@@ -515,7 +526,9 @@ void printNode(Node* paramNode, int printWeightsArray, int numberHidden){
 	if(paramNode->activationFunction == 2)
 	  printf("Node has activation function relu\n");	
 	if(paramNode->activationFunction == 3)
-	  printf("Node has activation function cosh\n");
+	  printf("Node has activation function tanh\n");
+	if(paramNode->activationFunction == 4)
+	  printf("Node has activation function sinh\n");
 	  
 	printf("Node contains input value %f, weight: %f, bias: %f, output: %f, lms: %f \n",
 	paramNode->input, paramNode->weight,paramNode->bias, paramNode->output, paramNode->lms);
@@ -536,11 +549,13 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 		fprintf(fp, "===Cycle is %d===\n",currentCycle);
 		fprintf(fp, "Input layer: \n");
 		if(citizen->inputLayer->activationFunction == 1)
-			fprintf(fp, "Activation Function: sigmoid\n");
-		if(citizen->inputLayer->activationFunction == 2)
 			fprintf(fp, "Activation Function: relu\n");
+		if(citizen->inputLayer->activationFunction == 2)
+			fprintf(fp, "Activation Function: sigmoid\n");
 		if(citizen->inputLayer->activationFunction == 3)
-			fprintf(fp, "Activation Function: cosh\n");
+			fprintf(fp, "Activation Function: tanh\n");
+		if(citizen->inputLayer->activationFunction == 4)
+			fprintf(fp, "Activation Function: sinh\n");
 		fprintf(fp, "Input weight: %f, input bias: %f \n",citizen->inputLayer->weight, citizen->inputLayer->bias);
 		fprintf(fp, "Input weight: %f, input bias: %f \n",citizen->inputLayer->weight, citizen->inputLayer->bias);
 		int c,d; 
@@ -551,7 +566,9 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 					if(citizen->hiddenLayer[c]->activationFunction == 2)
 						fprintf(fp, "Activation Function: relu\n");
 					if(citizen->hiddenLayer[c]->activationFunction == 3)
-						fprintf(fp, "Activation Function: cosh\n");
+						fprintf(fp, "Activation Function: tanh\n");
+					if(citizen->hiddenLayer[c]->activationFunction == 4)
+						fprintf(fp, "Activation Function: sinh\n");
 		}
 		
 		for(c=0; c < citizen->numberOfOutputNodes; c++){
@@ -561,7 +578,9 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 							if(citizen->outputLayer[c]->activationFunction == 2)
 									fprintf(fp, "Activation Function: relu\n");
 							if(citizen->outputLayer[c]->activationFunction == 3)
-									fprintf(fp, "Activation Function: cosh\n");
+									fprintf(fp, "Activation Function: tanh\n");
+							if(citizen->outputLayer[c]->activationFunction == 4)
+									fprintf(fp, "Activation Function: sinh\n");
 				fprintf(fp, "Weights: \n");
 				for(d=0; d < citizen->numberOfHiddenNodes; d++){
 					fprintf( fp, "w%d=%f, ",d,citizen->outputLayer[c]->weights[d]);
@@ -856,6 +875,7 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 		for(n=0; n < tournArray[1]->numberOfHiddenNodes; n++){
 			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->weight = tournArray[1]->hiddenLayer[n]->weight;
 			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->bias = tournArray[1]->hiddenLayer[n]->bias;
+			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->activationFunction = tournArray[1]->hiddenLayer[c]->activationFunction;
 		}
 		
 		//Now update output layer weights array for each output node to be same length as hidden layer

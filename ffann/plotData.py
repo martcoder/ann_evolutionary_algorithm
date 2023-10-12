@@ -3,7 +3,7 @@ import matplotlib.pyplot as plot
 
 x = []
 rx = []
-for z in range(1,101):
+for z in range(1,121):
   x.append(z)
   rx.append(z)
 y = []
