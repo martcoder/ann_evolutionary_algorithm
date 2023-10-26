@@ -11,7 +11,7 @@ counter = 0
 
 with open("lineardata.data","w") as myfile:
     
-  while counter < 120:
+  while counter < 180:
     counter = counter + 1
     #for ind in range(len(xvals)):
     #x = xvals[ind]

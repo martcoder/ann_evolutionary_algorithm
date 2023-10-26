@@ -56,12 +56,19 @@ for generating data to test with, and also for plotting graphs of results.
                   source compile.sh
 
     EXECUTING:--- The compile script generates algorithm.exe, which can then be executed as follows: 
-                  ./algorithm.exe a f  OR ./algorithm.exe r
+    
+                  ./algorithm.exe r 
+                  where r tells the program to do linear regression and use linear datafile
+                  
+                  OR
+                  
+                  ./algorithm.exe a OR ./algorithm.exe a f [n]  OR ./algorithm.exe a c [n] 
                   where a tells the program to use accelerometer data
                   where f tells the program to use specifically the fft-processed accel data
-                  (including another letter in place of f will therefore use the raw accel data)
-                  where r tells the program to do linear regression and use linear datafile
+                  where c tells the program to use specifically the cepstrogram-processed accel data
+                  where the optional n tells the program to normalise the input data
+                  
 
-    QUICKSTART:-- The following command compiles the code, runs the code, then also graphs the 
+    QUICKSTART:-- The following command deletes existing log files, compiles the code, runs the code, then also graphs the 
                   results, using default option of doing linear regression: 
                   source runAlgo.sh

@@ -35,53 +35,81 @@ int main(int argc, char * argv[]){
 	strcpy( linearDataFilename, "lineardata.data");
 	strcpy(filenameWrite,"oneTimeOutput.data");
 
+	if(argc > 1){
+		if( !strcmp(argv[1],"a") ){
+			
+	#ifdef TEST
+			printf("Accelerometer data chosen\n");
+	#endif
+			chosenSensor = 0; // 0 is for accelerometer, 1 is for lidar. 
+			normaliseCeiling = 300.0f; // based on empirical evidence... 
+			if(argc > 2){
+				if( !strcmp(argv[2],"f") ){
+		#ifdef TEST
+				printf("FFT data chosen\n");
+		#endif			
+				
+					normaliseCeiling = 250.0f; // based on empirical evidence for accel fft data
+					strcpy(filenamesListLow[0],"fftAccel15psi.data"); strcpy(filenamesListLow[1],"fftAccel20psi.data"); strcpy(filenamesListLow[2],"fftAccel25psi.data");
+					strcpy(filenamesListMiddle[0],"fftAccel30psi.data"); strcpy(filenamesListMiddle[1],"fftAccel35psi.data"); strcpy(filenamesListMiddle[2],"fftAccel40psi.data"); strcpy(filenamesListMiddle[3],"fftAccel45psi.data");
+					strcpy(filenamesListHigh[0],"fftAccel50psi.data"); strcpy(filenamesListHigh[1],"fftAccel55psi.data"); strcpy(filenamesListHigh[2],"fftAccel60psi.data");
 
-	if( !strcmp(argv[1],"a") ){
-		
-#ifdef TEST
-		printf("Accelerometer data chosen\n");
-#endif
-		chosenSensor = 0; // 0 is for accelerometer, 1 is for lidar. 
-		normaliseCeiling = 300.0f; // based on empirical evidence... 
-		if( !strcmp(argv[2],"f") ){
-#ifdef TEST
-		printf("FFT data chosen\n");
-#endif			
-		
-			normaliseCeiling = 250.0f; // based on empirical evidence for accel fft data
-			strcpy(filenamesListLow[0],"fftAccel15psi.data"); strcpy(filenamesListLow[1],"fftAccel20psi.data"); strcpy(filenamesListLow[2],"fftAccel25psi.data");
-			strcpy(filenamesListMiddle[0],"fftAccel30psi.data"); strcpy(filenamesListMiddle[1],"fftAccel35psi.data"); strcpy(filenamesListMiddle[2],"fftAccel40psi.data"); strcpy(filenamesListMiddle[3],"fftAccel45psi.data");
-			strcpy(filenamesListHigh[0],"fftAccel50psi.data"); strcpy(filenamesListHigh[1],"fftAccel55psi.data"); strcpy(filenamesListHigh[2],"fftAccel60psi.data");
+				}
+				else if( !strcmp(argv[2],"c") ){
+		#ifdef TEST
+				printf("Cepstrogram data chosen\n");
+		#endif		
+					normaliseCeiling = 50000.0f; // based on empirical evidence for accel cepstrogram data
+					strcpy(filenamesListLow[0],"cepAccel15psi.data"); strcpy(filenamesListLow[1],"cepAccel20psi.data"); strcpy(filenamesListLow[2],"cepAccel25psi.data");
+					strcpy(filenamesListMiddle[0],"cepAccel30psi.data"); strcpy(filenamesListMiddle[1],"cepAccel35psi.data"); strcpy(filenamesListMiddle[2],"cepAccel40psi.data"); strcpy(filenamesListMiddle[3],"cepAccel45psi.data");
+					strcpy(filenamesListHigh[0],"cepAccel50psi.data"); strcpy(filenamesListHigh[1],"cepAccel55psi.data"); strcpy(filenamesListHigh[2],"cepAccel60psi.data");
 
+				}
+				else{
+					printf("The argument after a needs to be either f for fft, or c for cepstrogram processed data...\n");
+					return 1;
+				}
+			}
+			else{ // raw accelerometer data
+					strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
+					strcpy(filenamesListMiddle[0],"Accel30psi.data"); strcpy(filenamesListMiddle[1],"Accel35psi.data"); strcpy(filenamesListMiddle[2],"Accel40psi.data"); strcpy(filenamesListMiddle[3],"Accel45psi.data");
+					strcpy(filenamesListHigh[0],"Accel50psi.data"); strcpy(filenamesListHigh[1],"Accel55psi.data"); strcpy(filenamesListHigh[2],"Accel60psi.data");
+
+			}
+			if(argc > 3){
+				if( !strcmp(argv[3],"n") ){ // choosing to normalise
+		#ifdef TEST
+				printf("Normalisation will be done when reading in data\n");
+		#endif	
+				
+					normalise = 1; // by default it is 0 for triclassification
+				}
+			}
+		}
+		else if( !strcmp(argv[1],"l") ){
+	#ifdef TEST
+			printf("Lidar data chosen\n");
+	#endif
+			chosenSensor = 1; // 1 for lidar
+			normaliseCeiling = 500.0f; // based on empirical evidence...
+			strcpy(filenamesListLow[0],"Lidar15psi.data"); strcpy(filenamesListLow[1],"Lidar20psi.data"); strcpy(filenamesListLow[2],"Lidar25psi.data");
+			strcpy(filenamesListMiddle[0],"Lidar30psi.data"); strcpy(filenamesListMiddle[1],"Lidar35psi.data"); strcpy(filenamesListMiddle[2],"Lidar40psi.data"); strcpy(filenamesListMiddle[3],"Lidar45psi.data");
+			strcpy(filenamesListHigh[0],"Lidar50psi.data"); strcpy(filenamesListHigh[1],"Lidar55psi.data"); strcpy(filenamesListHigh[2],"Lidar60psi.data");
+		}
+		else if ( !strcmp(argv[1],"r") ){ // if regression specified
+			
+				printf("Linear regression chosen\n");
+				linR = 1;
+				strcpy(linearDataFilename,"lineardata.data");
+				
 		}
 		else{
-			strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
-			strcpy(filenamesListMiddle[0],"Accel30psi.data"); strcpy(filenamesListMiddle[1],"Accel35psi.data"); strcpy(filenamesListMiddle[2],"Accel40psi.data"); strcpy(filenamesListMiddle[3],"Accel45psi.data");
-			strcpy(filenamesListHigh[0],"Accel50psi.data"); strcpy(filenamesListHigh[1],"Accel55psi.data"); strcpy(filenamesListHigh[2],"Accel60psi.data");
-
-			
+				printf("You need to specify a for accel, l for lidar, or r for regression as the first argument\n");
+				return 1;
 		}
-
-	}
-	else if( !strcmp(argv[1],"l") ){
-#ifdef TEST
-		printf("Lidar data chosen\n");
-#endif
-		chosenSensor = 1; // 1 for lidar
-		normaliseCeiling = 500.0f; // based on empirical evidence...
-		strcpy(filenamesListLow[0],"Lidar15psi.data"); strcpy(filenamesListLow[1],"Lidar20psi.data"); strcpy(filenamesListLow[2],"Lidar25psi.data");
-		strcpy(filenamesListMiddle[0],"Lidar30psi.data"); strcpy(filenamesListMiddle[1],"Lidar35psi.data"); strcpy(filenamesListMiddle[2],"Lidar40psi.data"); strcpy(filenamesListMiddle[3],"Lidar45psi.data");
-		strcpy(filenamesListHigh[0],"Lidar50psi.data"); strcpy(filenamesListHigh[1],"Lidar55psi.data"); strcpy(filenamesListHigh[2],"Lidar60psi.data");
-	}
-	else if ( !strcmp(argv[1],"r") ){ // if regression specified
-		
-			printf("Linear regression chosen\n");
-			linR = 1;
-			strcpy(linearDataFilename,"lineardata.data");
-			
 	}
 	else{
-		printf("You need to specify accel or lidar or regression as the first argument when running this script");
+		printf("You need to specify a for accel, l for lidar, or r for regression as the first argument when running this script\n");
 		return 1;
 	}
 	
@@ -148,7 +176,7 @@ int main(int argc, char * argv[]){
 			printf("Just about to process member %d\n",m);
 			superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing
 			
-			eL = 1.0f; eM = 0.0f; eH = 0.0f; // low pressure is expected result
+			eL = expectedResultTriClassification; eM = 0.0f; eH = 0.0f; // low pressure is expected result
 
 			if( linR ){ // process linear data file for regression solving
 					process(linearDataFilename, filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); 
@@ -158,13 +186,13 @@ int main(int argc, char * argv[]){
 				process(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
 				
-				eL = 0.0f; eM = 1.0f; eH = 0.0f; // medium pressure is expected result
+				eL = 0.0f; eM = expectedResultTriClassification; eH = 0.0f; // medium pressure is expected result
 				process(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				
-				eL = 0.0f; eM = 0.0f; eH = 1.0f; // high pressure is expected result
+				eL = 0.0f; eM = 0.0f; eH = expectedResultTriClassification; // high pressure is expected result
 				process(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
@@ -229,22 +257,26 @@ int main(int argc, char * argv[]){
 	}
 	else{
 			oneTime = 1; // setting this for a one-time run-through of data throug best ANN and logging of outputs
-			process(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+			if( oneTime ){ // This shouldn't be necessary  but I had a bug where the first few lines would process as though !oneTime
+				eL = expectedResultTriClassification; eM = 0.0f; eH = 0.0f;
+				process(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
 				
-				eL = 0.0f; eM = 1.0f; eH = 0.0f; // medium pressure is expected result
+				eL = 0.0f; eM = expectedResultTriClassification; eH = 0.0f; // medium pressure is expected result
 				process(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				
-				eL = 0.0f; eM = 0.0f; eH = 1.0f; // high pressure is expected result
+				eL = 0.0f; eM = 0.0f; eH = expectedResultTriClassification; // high pressure is expected result
 				process(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				process(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 
-			printf("Also see %s for details of one-time run-through output of best ANN\n",filenameWrite);
+				printf("Also see %s for details of one-time run-through output of best ANN\n",filenameWrite);
+				
+			}
 	}
 
 #ifdef TEST

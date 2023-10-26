@@ -25,21 +25,26 @@ void initialiseVariables(){
 	linR = 0; // Default is that linear regression is not being solved, in main sets to 1 if linear regression cmd line arg set
 	oneTime = 0; // Default of 0, generally not running data through an ANN one-time, but processing for the algorithm
 	expectedResultRegression = 0.0f;
-	numberActivationFunctions = 4;
+	expectedResultTriClassification = 10.0f;
+	numberActivationFunctions = 1;
+	
+	normalise = 0; // default don't normalise for triclassification
+	
+	normaliseScaler = 2.0f;
 	
 	numberOfLowDataFiles = 3;
 	numberOfMedDataFiles = 4;
 	numberOfHighDataFiles = 3;
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
-	popsize = 195;
+	popsize = 49;
 	hiddenMax = 10;
 	hiddenMin = 4;
 	outputLayerLength = 3;
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 999; //global variable
+	numCycles = 3; //global variable
 	nodeSizeMemory = ( sizeof(float) * 6 ) + (sizeof(int)) + ( sizeof(float) * hiddenMax );
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
 	
@@ -163,8 +168,8 @@ void copyIndividual(Individual* from, Individual* to){
 #endif
 		//=====FIRSTLY THE INPUT LAYER
 
-		to->inputLayer->input = 0.0f;
-		to->inputLayer->output = 0.0f;
+		to->inputLayer->input = from->inputLayer->input;
+		to->inputLayer->output = 	from->inputLayer->output;
 		to->inputLayer->weight = from->inputLayer->weight;
 		to->inputLayer->bias = from->inputLayer->bias;
 		to->inputLayer->activationFunction = from->inputLayer->activationFunction;
@@ -176,8 +181,8 @@ void copyIndividual(Individual* from, Individual* to){
 		//======NOW THE HIDDEN LAYER===========
 		int c = 0; 
 		for(c=0; c < from->numberOfHiddenNodes; c++){
-				to->hiddenLayer[c]->input = 0.0f;
-				to->hiddenLayer[c]->output = 0.0f;
+				to->hiddenLayer[c]->input = from->hiddenLayer[c]->input;
+				to->hiddenLayer[c]->output = from->hiddenLayer[c]->output;
 				to->hiddenLayer[c]->weight = from->hiddenLayer[c]->weight;
 				to->hiddenLayer[c]->bias = from->hiddenLayer[c]->bias;
 				to->hiddenLayer[c]->activationFunction = from->hiddenLayer[c]->activationFunction;
@@ -190,8 +195,8 @@ void copyIndividual(Individual* from, Individual* to){
 		//======FINALLY THE OUTPUT LAYER=======
 		int w = 0;
 		for(c=0; c < from->numberOfOutputNodes; c++){
-				to->outputLayer[c]->input = 0.0f;
-				to->outputLayer[c]->output = 0.0f;
+				to->outputLayer[c]->input = from->outputLayer[c]->input;
+				to->outputLayer[c]->output = from->outputLayer[c]->output;
 				to->outputLayer[c]->weight = from->outputLayer[c]->weight;
 				to->outputLayer[c]->bias = from->outputLayer[c]->bias;
 				to->outputLayer[c]->activationFunction = from->outputLayer[c]->activationFunction;
@@ -225,9 +230,9 @@ float normalisedLms( float a, float b, float c, float expectedA, float expectedB
   //Now calculate LMS depending on which value is the largest...
   // e.g. for LOW pressure the a value should ideally be largest
 	if( (a > b) && (a > c) ){ // a largest
-		x = 1.0f; // a / a
-		y = a/b;
-		z = a/c;
+		x = 1.0f * expectedResultTriClassification; // a / a
+		y = (a/b) * expectedResultTriClassification;
+		z = (a/c) * expectedResultTriClassification;
 		
 		lmsA = floatAbs(x - expectedA);
 		lmsB = floatAbs(y - expectedB);
@@ -238,9 +243,9 @@ float normalisedLms( float a, float b, float c, float expectedA, float expectedB
 	}
 	
 	if( (b > a) && (b > c) ){ // b largest
-		x = b / a;
-		y = 1.0f; // b / b
-		z = b / c;
+		x = (b / a) * expectedResultTriClassification;
+		y = 1.0f * expectedResultTriClassification; // b / b
+		z = ( b / c ) * expectedResultTriClassification;
 		
 		lmsA = floatAbs(x - expectedA);
 		lmsB = floatAbs(y - expectedB);
@@ -250,9 +255,9 @@ float normalisedLms( float a, float b, float c, float expectedA, float expectedB
 	}
 	
 	if( (c > b) && (c > a) ){ // c largest
-		x = c / a;
-		y = c / b;
-		z = 1.0f; // c/c;
+		x = ( c / a ) * expectedResultTriClassification;
+		y = ( c / b ) * expectedResultTriClassification;
+		z = 1.0f * expectedResultTriClassification; // c/c;
 		
 		lmsA = floatAbs(x - expectedA);
 		lmsB = floatAbs(y - expectedB);
@@ -285,14 +290,20 @@ void getFirstFloat(char * lineOfData, float * result, float normaliseCeiling, in
 				
 				(*result) = (float) atof(value); // converter found value into a float
 				
-				if(linearReg != 1){
-					if(  ( (float) floatAbs(*result) ) >  normaliseCeiling ){ // for data over upper ceiling
-								(*result) = 1.0f; // return max absolute normalised value
+				if(linearReg != 1){ // Normal tri-state classification
+					if(!normalise){
+					    //Currently trying no normalisation!!!!
+							(*result) =  ( ( (float) floatAbs(*result) ) / normaliseCeiling );
 					}
-					else{ // for data under the upper ceiling, get absolute, normalise it and return
-							(*result) =  ( (float) floatAbs(*result) ) / normaliseCeiling;
+					else{ // if normalise has been chosen for triclassification
+							if(  ( (float) floatAbs(*result) ) >  normaliseCeiling ){ // for data over upper ceiling
+									(*result) = 1.0f * normaliseScaler; // return max absolute normalised value
+							}
+							else{ // for data under the upper ceiling, get absolute, normalise it, scale if desired, then return
+									(*result) =  normaliseScaler *  ( ( (float) floatAbs(*result) ) / normaliseCeiling );
+							}
 					}
-				}
+				} // end of normal tri-state classification
 }
 
 //So gonna pass in each data file one by one, so the iteration over different data will happen in main
@@ -562,9 +573,9 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 		for(c=0; c < citizen->numberOfHiddenNodes; c++){
 			fprintf(fp, "\nHidden layer node %d:- weight: %f, bias: %f\n",c, citizen->hiddenLayer[c]->weight, citizen->hiddenLayer[c]->bias);
 					if(citizen->hiddenLayer[c]->activationFunction == 1)
-						fprintf(fp, "Activation Function: sigmoid\n");
-					if(citizen->hiddenLayer[c]->activationFunction == 2)
 						fprintf(fp, "Activation Function: relu\n");
+					if(citizen->hiddenLayer[c]->activationFunction == 2)
+						fprintf(fp, "Activation Function: sigmoid\n");
 					if(citizen->hiddenLayer[c]->activationFunction == 3)
 						fprintf(fp, "Activation Function: tanh\n");
 					if(citizen->hiddenLayer[c]->activationFunction == 4)
@@ -574,9 +585,9 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 		for(c=0; c < citizen->numberOfOutputNodes; c++){
 				fprintf(fp, "\nOutput layer node %d :-  bias: %f \n", c, citizen->outputLayer[c]->bias);
 							if(citizen->outputLayer[c]->activationFunction == 1)
-									fprintf(fp, "Activation Function: sigmoid\n");
-							if(citizen->outputLayer[c]->activationFunction == 2)
 									fprintf(fp, "Activation Function: relu\n");
+							if(citizen->outputLayer[c]->activationFunction == 2)
+									fprintf(fp, "Activation Function: sigmoid\n");
 							if(citizen->outputLayer[c]->activationFunction == 3)
 									fprintf(fp, "Activation Function: tanh\n");
 							if(citizen->outputLayer[c]->activationFunction == 4)
@@ -875,7 +886,7 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 		for(n=0; n < tournArray[1]->numberOfHiddenNodes; n++){
 			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->weight = tournArray[1]->hiddenLayer[n]->weight;
 			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->bias = tournArray[1]->hiddenLayer[n]->bias;
-			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->activationFunction = tournArray[1]->hiddenLayer[c]->activationFunction;
+			superpopulation->newpopulation[newpopMemberIndex]->hiddenLayer[n]->activationFunction = tournArray[1]->hiddenLayer[n]->activationFunction;
 		}
 		
 		//Now update output layer weights array for each output node to be same length as hidden layer

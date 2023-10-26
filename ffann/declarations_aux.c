@@ -34,7 +34,9 @@ typedef struct population {
 int numberOfLowDataFiles;
 int numberOfMedDataFiles;
 int numberOfHighDataFiles;
+int normalise; 
 float normaliseCeiling; 
+float normaliseScaler;
 int numCycles;
 int nodeSizeMemory;
 int individualSizeMemory;
@@ -49,6 +51,7 @@ int tournamentSize;
 float * lmsResult;
 float bestlms; 
 float expectedResultRegression;
+float expectedResultTriClassification;
 int numberActivationFunctions; 
 
 
