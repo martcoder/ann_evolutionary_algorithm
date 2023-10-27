@@ -13,6 +13,11 @@ accelUpperCeiling = 300.0
 lidarUpperCeiling = 500.0
 upperCeiling = 400.0
 sr = 4096
+histLen = 2048
+
+freqHist = []
+for x in range(histLen):
+  freqHist.append( 0.0 )
 
 #filename = input("Enter filename to process: ")
 
@@ -51,11 +56,13 @@ with open(filename, 'r') as file:
       counter = 0
       X = fft( sampleBatch )
       toWrite = np.abs(X[0:2048])
-      fileToWrite = open("fft"+filename, "w")
-      for r in range(len(toWrite)):
+      #fileToWrite = open("fft"+filename, "w")
+      for r in range(10,len(toWrite)): # deliberately omitting the 1st 10 values, which skew the results
         if float(toWrite[r]) > upperMax:
           upperMax = float(toWrite[r])
-        fileToWrite.write( str(toWrite[r])+",\n"  )
+        freqHist[r] = freqHist[r] + toWrite[r]
+        print("Just added "+str(toWrite[r])+" to  index "+str(r)+", which now has "+str(freqHist[r]))
+      #  fileToWrite.write( str(toWrite[r])+",\n"  )
       N = len( X )
       n = np.arange(N)
       T = N / sr
@@ -83,7 +90,10 @@ with open(filename, 'r') as file:
 
       sampleBatch.clear()
 
-      
+fileToWrite = open("fft"+filename, "w")
+for x in freqHist:
+  fileToWrite.write( str(x)+",\n"  )
+
 '''
 print("Avg of max amps mean and median is "+str( ( statistics.median( maxs15 )  + statistics.mean( maxs15 )  ) / 2.0  ) )
 print("Median of max amp is "+str( statistics.median( maxs15 ) )+", mean of max amp is "+str( statistics.mean(maxs15)  )+", mode of max amp: "+str( statistics.mode(maxs15)  )+", and stdev of maxamps: "+str( statistics.stdev(maxs15)  ) )
