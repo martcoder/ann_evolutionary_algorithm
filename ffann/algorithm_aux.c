@@ -37,14 +37,14 @@ void initialiseVariables(){
 	numberOfHighDataFiles = 3;
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
-	popsize = 49;
+	popsize = 189;
 	hiddenMax = 10;
 	hiddenMin = 4;
 	outputLayerLength = 3;
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 3; //global variable
+	numCycles = 199; //global variable
 	nodeSizeMemory = ( sizeof(float) * 6 ) + (sizeof(int)) + ( sizeof(float) * hiddenMax );
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
 	
@@ -111,13 +111,13 @@ float processActivationFunction(Node* nodeactivate, float input){
 				return relu(input);
 		}
 		if( nodeactivate->activationFunction == 2){
-				return sigmoid(input);
+				return activation_sinh(input);
 		}
 		if( nodeactivate->activationFunction == 3){
 				return activation_tanh(input);
 		}
 		if( nodeactivate->activationFunction == 4){
-				return activation_sinh(input);
+				return sigmoid(input);
 		}
 }
 
@@ -293,7 +293,7 @@ void getFirstFloat(char * lineOfData, float * result, float normaliseCeiling, in
 				if(linearReg != 1){ // Normal tri-state classification
 					if(!normalise){
 					    //Currently trying no normalisation!!!!
-							(*result) =  ( ( (float) floatAbs(*result) ) / normaliseCeiling );
+							(*result) =  ( ( (float) floatAbs(*result) ) );
 					}
 					else{ // if normalise has been chosen for triclassification
 							if(  ( (float) floatAbs(*result) ) >  normaliseCeiling ){ // for data over upper ceiling
@@ -533,13 +533,13 @@ printf("Just about to read datafile  line by line...\n");
 //This function simply prints the values currently contained in the fields of a Node struct
 void printNode(Node* paramNode, int printWeightsArray, int numberHidden){
 	if(paramNode->activationFunction == 1)
-	  printf("Node has activation function sigmoid\n");
+	  printf("Node has activation function relu\n");
 	if(paramNode->activationFunction == 2)
-	  printf("Node has activation function relu\n");	
+	  printf("Node has activation function sinh\n");	
 	if(paramNode->activationFunction == 3)
 	  printf("Node has activation function tanh\n");
 	if(paramNode->activationFunction == 4)
-	  printf("Node has activation function sinh\n");
+	  printf("Node has activation function sigmoid\n");
 	  
 	printf("Node contains input value %f, weight: %f, bias: %f, output: %f, lms: %f \n",
 	paramNode->input, paramNode->weight,paramNode->bias, paramNode->output, paramNode->lms);
@@ -562,11 +562,11 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 		if(citizen->inputLayer->activationFunction == 1)
 			fprintf(fp, "Activation Function: relu\n");
 		if(citizen->inputLayer->activationFunction == 2)
-			fprintf(fp, "Activation Function: sigmoid\n");
+			fprintf(fp, "Activation Function: sinh\n");
 		if(citizen->inputLayer->activationFunction == 3)
 			fprintf(fp, "Activation Function: tanh\n");
 		if(citizen->inputLayer->activationFunction == 4)
-			fprintf(fp, "Activation Function: sinh\n");
+			fprintf(fp, "Activation Function: sigmoid\n");
 		fprintf(fp, "Input weight: %f, input bias: %f \n",citizen->inputLayer->weight, citizen->inputLayer->bias);
 		fprintf(fp, "Input weight: %f, input bias: %f \n",citizen->inputLayer->weight, citizen->inputLayer->bias);
 		int c,d; 
@@ -575,11 +575,11 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 					if(citizen->hiddenLayer[c]->activationFunction == 1)
 						fprintf(fp, "Activation Function: relu\n");
 					if(citizen->hiddenLayer[c]->activationFunction == 2)
-						fprintf(fp, "Activation Function: sigmoid\n");
+						fprintf(fp, "Activation Function: sinh\n");
 					if(citizen->hiddenLayer[c]->activationFunction == 3)
 						fprintf(fp, "Activation Function: tanh\n");
 					if(citizen->hiddenLayer[c]->activationFunction == 4)
-						fprintf(fp, "Activation Function: sinh\n");
+						fprintf(fp, "Activation Function: sigmoid\n");
 		}
 		
 		for(c=0; c < citizen->numberOfOutputNodes; c++){
@@ -587,11 +587,11 @@ void writeFFANNtoFile(Individual* citizen, int currentCycle){
 							if(citizen->outputLayer[c]->activationFunction == 1)
 									fprintf(fp, "Activation Function: relu\n");
 							if(citizen->outputLayer[c]->activationFunction == 2)
-									fprintf(fp, "Activation Function: sigmoid\n");
+									fprintf(fp, "Activation Function: sinh\n");
 							if(citizen->outputLayer[c]->activationFunction == 3)
 									fprintf(fp, "Activation Function: tanh\n");
 							if(citizen->outputLayer[c]->activationFunction == 4)
-									fprintf(fp, "Activation Function: sinh\n");
+									fprintf(fp, "Activation Function: sigmoid\n");
 				fprintf(fp, "Weights: \n");
 				for(d=0; d < citizen->numberOfHiddenNodes; d++){
 					fprintf( fp, "w%d=%f, ",d,citizen->outputLayer[c]->weights[d]);

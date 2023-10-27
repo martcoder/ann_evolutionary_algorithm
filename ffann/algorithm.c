@@ -65,6 +65,16 @@ int main(int argc, char * argv[]){
 					strcpy(filenamesListHigh[0],"cepAccel50psi.data"); strcpy(filenamesListHigh[1],"cepAccel55psi.data"); strcpy(filenamesListHigh[2],"cepAccel60psi.data");
 
 				}
+				else if ( !strcmp(argv[2],"r") ){
+		#ifdef TEST
+				printf("Running average accelerometer data chosen\n");
+		#endif		
+					normaliseCeiling = 200.0f; // from empirical evidence looking at the largest datafile values
+					strcpy(filenamesListLow[0],"ra_Accel15psi.data"); strcpy(filenamesListLow[1],"ra_Accel20psi.data"); strcpy(filenamesListLow[2],"ra_Accel25psi.data");
+					strcpy(filenamesListMiddle[0],"ra_Accel30psi.data"); strcpy(filenamesListMiddle[1],"ra_Accel35psi.data"); strcpy(filenamesListMiddle[2],"ra_Accel40psi.data"); strcpy(filenamesListMiddle[3],"ra_Accel45psi.data");
+					strcpy(filenamesListHigh[0],"ra_Accel50psi.data"); strcpy(filenamesListHigh[1],"ra_Accel55psi.data"); strcpy(filenamesListHigh[2],"ra_Accel60psi.data");
+
+				}
 				else{
 					printf("The argument after a needs to be either f for fft, or c for cepstrogram processed data...\n");
 					return 1;
@@ -74,7 +84,7 @@ int main(int argc, char * argv[]){
 					strcpy(filenamesListLow[0],"Accel15psi.data"); strcpy(filenamesListLow[1],"Accel20psi.data"); strcpy(filenamesListLow[2],"Accel25psi.data");
 					strcpy(filenamesListMiddle[0],"Accel30psi.data"); strcpy(filenamesListMiddle[1],"Accel35psi.data"); strcpy(filenamesListMiddle[2],"Accel40psi.data"); strcpy(filenamesListMiddle[3],"Accel45psi.data");
 					strcpy(filenamesListHigh[0],"Accel50psi.data"); strcpy(filenamesListHigh[1],"Accel55psi.data"); strcpy(filenamesListHigh[2],"Accel60psi.data");
-
+					
 			}
 			if(argc > 3){
 				if( !strcmp(argv[3],"n") ){ // choosing to normalise
