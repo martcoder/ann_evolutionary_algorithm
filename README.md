@@ -62,10 +62,12 @@ for generating data to test with, and also for plotting graphs of results.
                   
                   OR
                   
-                  ./algorithm.exe a OR ./algorithm.exe a f [n]  OR ./algorithm.exe a c [n] 
+                  ./algorithm.exe a   OR   ./algorithm.exe a f [n]  
+                  OR   ./algorithm.exe a c [n]   OR   ./algorithm.exe a r [n] 
                   where a tells the program to use accelerometer data
-                  where f tells the program to use specifically the fft-processed accel data
-                  where c tells the program to use specifically the cepstrogram-processed accel data
+                  where a f tells the program to use specifically the fft-processed accel data
+                  where a c tells the program to use specifically the cepstrogram-processed accel data
+                  where a r tells the program to use running-average processed accel data
                   where the optional n tells the program to normalise the input data
                   
 
