@@ -10,7 +10,7 @@ with open(sys.argv[1],"r") as datafile:
 
 
   buffer = [] # will keep last 10 vals
-  bufferLen = 10
+  bufferLen = 5
   counter = 0
   fileToWrite = open("ra_"+sys.argv[1],"w")
   for line in datafile:
@@ -29,4 +29,4 @@ with open(sys.argv[1],"r") as datafile:
       fileToWrite.write(str(dataWrite)+",\n")
     counter = counter + 1
 
-print("Largest value is "+str(upperMax)
+print("Largest value is "+str(upperMax))

@@ -69,7 +69,17 @@ int main(int argc, char * argv[]){
 		#ifdef TEST
 				printf("Running average accelerometer data chosen\n");
 		#endif		
-					normaliseCeiling = 200.0f; // from empirical evidence looking at the largest datafile values
+					normaliseCeiling = 300.0f; // from empirical evidence looking at the largest datafile values
+					strcpy(filenamesListLow[0],"ra_Accel15psi.data"); strcpy(filenamesListLow[1],"ra_Accel20psi.data"); strcpy(filenamesListLow[2],"ra_Accel25psi.data");
+					strcpy(filenamesListMiddle[0],"ra_Accel30psi.data"); strcpy(filenamesListMiddle[1],"ra_Accel35psi.data"); strcpy(filenamesListMiddle[2],"ra_Accel40psi.data"); strcpy(filenamesListMiddle[3],"ra_Accel45psi.data");
+					strcpy(filenamesListHigh[0],"ra_Accel50psi.data"); strcpy(filenamesListHigh[1],"ra_Accel55psi.data"); strcpy(filenamesListHigh[2],"ra_Accel60psi.data");
+
+				}
+				else if ( !strcmp(argv[2],"d") ){
+		#ifdef TEST
+				printf("Difference accelerometer data chosen\n"); // squares of differences between consecutive raw data values
+		#endif		
+					normaliseCeiling = 300.0f; // from empirical evidence looking at the largest datafile values
 					strcpy(filenamesListLow[0],"ra_Accel15psi.data"); strcpy(filenamesListLow[1],"ra_Accel20psi.data"); strcpy(filenamesListLow[2],"ra_Accel25psi.data");
 					strcpy(filenamesListMiddle[0],"ra_Accel30psi.data"); strcpy(filenamesListMiddle[1],"ra_Accel35psi.data"); strcpy(filenamesListMiddle[2],"ra_Accel40psi.data"); strcpy(filenamesListMiddle[3],"ra_Accel45psi.data");
 					strcpy(filenamesListHigh[0],"ra_Accel50psi.data"); strcpy(filenamesListHigh[1],"ra_Accel55psi.data"); strcpy(filenamesListHigh[2],"ra_Accel60psi.data");
