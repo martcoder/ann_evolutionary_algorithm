@@ -194,7 +194,7 @@ int main(int argc, char * argv[]){
 
 		for(m=0; m < popsize; m++){ // #e.g. for each member FFANN, process it
 			printf("Just about to process member %d\n",m);
-			superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing
+			superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing so that a fresh lms can be calculated
 			
 			eL = expectedResultTriClassification; eM = 0.0f; eH = 0.0f; // low pressure is expected result
 
@@ -266,33 +266,36 @@ int main(int argc, char * argv[]){
 		for(c=0; c < popsize; c++){
 				copyIndividual(superpopulation.newpopulation[c], superpopulation.oldpopulation[c]);
 		}
- 	}
+ 	} // end of cycles loop
  	
  	printf("Algorithm complete, please see log.txt for details of best ANN found\n");
  	
  	if(linR){
 		oneTime = 1; // setting this for a one-time run-through of data throug best ANN and logging of outputs
-		process(linearDataFilename, filenameWrite, 0, linR, eL, eM, eH, normaliseCeiling, oneTime); 
+		superpopulation.miscpopulation[0]->lms = 0.0f; // Resetting lms before the processing happens
+		processBestOneTime(linearDataFilename, filenameWrite, 0, linR, eL, eM, eH, normaliseCeiling, oneTime); 
 		printf("Also see %s for details of one-time run-through output of best ANN\n",filenameWrite);
 	}
 	else{
 			oneTime = 1; // setting this for a one-time run-through of data throug best ANN and logging of outputs
 			if( oneTime ){ // This shouldn't be necessary  but I had a bug where the first few lines would process as though !oneTime
+				superpopulation.miscpopulation[0]->lms = 0.0f; // Resetting lms before the processing happens
+				
 				eL = expectedResultTriClassification; eM = 0.0f; eH = 0.0f;
-				process(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
+				processBestOneTime(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
 				
 				eL = 0.0f; eM = expectedResultTriClassification; eH = 0.0f; // medium pressure is expected result
-				process(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 				
 				eL = 0.0f; eM = 0.0f; eH = expectedResultTriClassification; // high pressure is expected result
-				process(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				processBestOneTime(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 
 				printf("Also see %s for details of one-time run-through output of best ANN\n",filenameWrite);
 				

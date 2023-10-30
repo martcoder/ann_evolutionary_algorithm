@@ -26,7 +26,7 @@ void initialiseVariables(){
 	oneTime = 0; // Default of 0, generally not running data through an ANN one-time, but processing for the algorithm
 	expectedResultRegression = 0.0f;
 	expectedResultTriClassification = 10.0f;
-	numberActivationFunctions = 1;
+	numberActivationFunctions = 4;
 	
 	normalise = 0; // default don't normalise for triclassification
 	
@@ -44,7 +44,7 @@ void initialiseVariables(){
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 199; //global variable
+	numCycles = 499; //global variable
 	nodeSizeMemory = ( sizeof(float) * 6 ) + (sizeof(int)) + ( sizeof(float) * hiddenMax );
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
 	
@@ -156,6 +156,12 @@ void copyIndividual(Individual* from, Individual* to){
 #endif
 		//====FIRSTLY OVERALL INDIVIDUAL VALUES
 		
+		// LMS should be set to zero for a new population member that has not been processed yet, 
+		// ... but that is not the role of the copy function, instead setting lsm to zero is done just
+		// ... before processing function is called, and is also done just after tournament selection 
+		// ... has been used to create the next generation. As the lms is set to zero there, the 
+		// ... following code which copies lms as is will therefore copy this zeroed lms back to the 
+		// .... oldpopulation array where fresh processing on the zeroed lms can begin again. 
 		(*to).lms = (*from).lms;
 		
 #ifdef AUXTEST
@@ -306,229 +312,7 @@ void getFirstFloat(char * lineOfData, float * result, float normaliseCeiling, in
 				} // end of normal tri-state classification
 }
 
-//So gonna pass in each data file one by one, so the iteration over different data will happen in main
-void process( char * filename, char * filenameWrite, int member, int linearRegression, float expectedResultLow, float expectedResultMed, float expectedResultHigh, float normaliseCeiling, int oneTime  ){
-	int c = 0; 
-	
-#ifdef TEST
-printf("Just started process function...\n");
-#endif
-	
-		FILE *fp; // This is for reading from data file
-		FILE *fpW; // This is for writing the ANN outputs to logfile
-		
-		
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    
-		fp = fopen(filename, "r");
-    if (fp == NULL){
-				printf("An issue occured when reading in the data file\n");
-        exit(EXIT_FAILURE);
-		}
-		
-		if(oneTime == 1){ // e.g. one off processing of data throguh ANN, e.g. to log output from best ANN once algorithm done
-			fpW = fopen(filenameWrite, "a");
-			if( fpW == NULL ){
-					printf("An issue occurred when opening file to write\n");
-					exit(EXIT_FAILURE);
-			}
-		}
-		
-		
-#ifdef TEST
-printf("Just about to read datafile  line by line...\n");
-#endif
-	 
-	 float dataCount = 0;
-   while ((read = getline(&line, &len, fp)) != -1) {
-				dataCount++;
-				
-#ifdef DEEPTEST
-        printf("Retrieved line of length %zu :\n", read);
-        printf("%s", line);
-#endif
-        float float_data;
-        if(linearRegression){
-						getFirstFloat(line, &float_data, 1.0f, linearRegression);
-				}
-				else{
-					getFirstFloat(line, &float_data, normaliseCeiling, linearRegression); // converts the first data value from the string line into a float
-				}
-#ifdef DEEPTEST
-				printf("Float data value is %f\n", float_data);
-#endif
-				
-				//=====INPUT NODE PROCESSING FIRST=========
-				// Decorate the input with the data value
-				if( linearRegression ){ 
-					if(oneTime){
-						superpopulation.miscpopulation[0]->inputLayer->input = (float) dataCount;
-					}
-					else{
-						superpopulation.oldpopulation[member]->inputLayer->input = (float) dataCount; // x value becomes simply the counter
-					}
-					expectedResultRegression = float_data; // For regression the hoped-for result is the y value 
-				}
-				else{
-					if(oneTime){
-							superpopulation.miscpopulation[0]->inputLayer->input = float_data;
-					}
-					
-					superpopulation.oldpopulation[member]->inputLayer->input = float_data;
-				}
-				
-				
-				if(oneTime){
-					//Multiply input by weight
-					superpopulation.miscpopulation[0]->inputLayer->output = superpopulation.miscpopulation[0]->inputLayer->input * superpopulation.miscpopulation[0]->inputLayer->weight;
-					
-					//Add the bias
-					superpopulation.miscpopulation[0]->inputLayer->output += superpopulation.miscpopulation[0]->inputLayer->bias;
-					
-					//Run through the activation function
-					superpopulation.miscpopulation[0]->inputLayer->output = processActivationFunction( superpopulation.miscpopulation[0]->inputLayer, superpopulation.miscpopulation[0]->inputLayer->output );
-					
-					
-					
-					//==========HIDDEN LAYER PROCESSING============
-					//Now do the same for each hidden-layer node.....
-					int h = 0;
-					for(h = 0; h < superpopulation.miscpopulation[0]->numberOfHiddenNodes; h++){
-						//decorate hidden node input from input node's output
-						
-						superpopulation.miscpopulation[0]->hiddenLayer[h]->input = superpopulation.miscpopulation[0]->inputLayer->output;
-						// Multiply input by weight
-						superpopulation.miscpopulation[0]->hiddenLayer[h]->output = superpopulation.miscpopulation[0]->hiddenLayer[h]->input * superpopulation.miscpopulation[0]->hiddenLayer[h]->weight;
-						// Add in bias
-						superpopulation.miscpopulation[0]->hiddenLayer[h]->output += superpopulation.miscpopulation[0]->hiddenLayer[h]->bias;
-						
-						//Run through activation function
-						superpopulation.miscpopulation[0]->hiddenLayer[h]->output = processActivationFunction(superpopulation.miscpopulation[0]->hiddenLayer[h], superpopulation.miscpopulation[0]->hiddenLayer[h]->output); 
-						
 
-					}
-				}
-				else{
-					//Multiply input by weight
-					superpopulation.oldpopulation[member]->inputLayer->output = superpopulation.oldpopulation[member]->inputLayer->input * superpopulation.oldpopulation[member]->inputLayer->weight;
-					
-					//Add the bias
-					superpopulation.oldpopulation[member]->inputLayer->output += superpopulation.oldpopulation[member]->inputLayer->bias;
-					
-					//Run through the activation function
-					superpopulation.oldpopulation[member]->inputLayer->output = processActivationFunction( superpopulation.oldpopulation[member]->inputLayer, superpopulation.oldpopulation[member]->inputLayer->output);
-					
-				
-					//==========HIDDEN LAYER PROCESSING============
-					//Now do the same for each hidden-layer node.....
-					int h = 0;
-					for(h = 0; h < superpopulation.oldpopulation[member]->numberOfHiddenNodes; h++){
-						//decorate hidden node input from input node's output
-						superpopulation.oldpopulation[member]->hiddenLayer[h]->input = superpopulation.oldpopulation[member]->inputLayer->output;
-						// Multiply input by weight
-						superpopulation.oldpopulation[member]->hiddenLayer[h]->output = superpopulation.oldpopulation[member]->hiddenLayer[h]->input * superpopulation.oldpopulation[member]->hiddenLayer[h]->weight;
-						// Add in bias
-						superpopulation.oldpopulation[member]->hiddenLayer[h]->output += superpopulation.oldpopulation[member]->hiddenLayer[h]->bias;
-						
-						//Run through activation function
-						superpopulation.oldpopulation[member]->hiddenLayer[h]->output =  processActivationFunction(superpopulation.oldpopulation[member]->hiddenLayer[h],superpopulation.oldpopulation[member]->hiddenLayer[h]->output );
-						
-					}
-				}
-
-				//=======OUTPUT LAYER PROCESSING============
-				if(oneTime){
-					int o, w;
-					if(linearRegression){
-						superpopulation.miscpopulation[0]->outputLayer[0]->output = 0.0f; // clear output value 
-						for(w = 0; w < superpopulation.miscpopulation[0]->numberOfHiddenNodes; w++){
-										// input value (which is output of preceding layer node) * appropriate weight....
-										superpopulation.miscpopulation[0]->outputLayer[0]->output += superpopulation.miscpopulation[0]->hiddenLayer[w]->output * superpopulation.miscpopulation[0]->outputLayer[0]->weights[w];
-						}
-						// Now add in bias
-						superpopulation.miscpopulation[0]->outputLayer[0]->output += superpopulation.miscpopulation[0]->outputLayer[0]->bias;
-							
-						// Run through activation function
-						superpopulation.miscpopulation[0]->outputLayer[0]->output = processActivationFunction( superpopulation.miscpopulation[0]->outputLayer[0], superpopulation.miscpopulation[0]->outputLayer[0]->output);
-														
-					}
-					else{
-						
-						for(o = 0; o < superpopulation.miscpopulation[0]->numberOfOutputNodes; o++){
-								superpopulation.miscpopulation[0]->outputLayer[o]->output = 0.0f; // clear output value 
-								// Sum each result of multiplying input from preceding layer with appropriate weight
-								for(w = 0; w < superpopulation.miscpopulation[0]->numberOfHiddenNodes; w++){
-										// input value (which is output of preceding layer node) * appropriate weight....
-										superpopulation.miscpopulation[0]->outputLayer[o]->output += superpopulation.miscpopulation[0]->hiddenLayer[w]->output * superpopulation.miscpopulation[0]->outputLayer[o]->weights[w];
-								}
-								
-								// Now add in bias
-								superpopulation.miscpopulation[0]->outputLayer[o]->output += superpopulation.miscpopulation[0]->outputLayer[o]->bias;
-							
-								// Run through activation function
-								superpopulation.miscpopulation[0]->outputLayer[o]->output = processActivationFunction(	superpopulation.miscpopulation[0]->outputLayer[o],superpopulation.miscpopulation[0]->outputLayer[o]->output);
-								
-								if( !linearRegression){
-												fprintf(fpW, "%f,",superpopulation.miscpopulation[0]->outputLayer[o]->output);
-								}
-						}
-					}
-					
-					if(  (!linearRegression) ){ // Close the logged 3 outputs line that is being written
-						fprintf(fpW,"\n"); // end that line by writing newline character
-					}
-					if( (linearRegression)  ){ // only use first output node for linear regression
-							fprintf(fpW,"%f,\n",superpopulation.miscpopulation[0]->outputLayer[0]->output);
-					}
-				}
-				else{
-					int o, w;
-					for(o = 0; o < superpopulation.oldpopulation[member]->numberOfOutputNodes; o++){
-							superpopulation.oldpopulation[member]->outputLayer[o]->output = 0.0f; // clear output value 
-							// Sum each result of multiplying input from preceding layer with appropriate weight
-							for(w = 0; w < superpopulation.oldpopulation[member]->numberOfHiddenNodes; w++){
-									// input value (which is output of preceding layer node) * appropriate weight....
-									superpopulation.oldpopulation[member]->outputLayer[o]->output += superpopulation.oldpopulation[member]->hiddenLayer[w]->output * superpopulation.oldpopulation[member]->outputLayer[o]->weights[w];
-							}
-							
-							// Now add in bias
-							superpopulation.oldpopulation[member]->outputLayer[o]->output += superpopulation.oldpopulation[member]->outputLayer[o]->bias;
-						
-							// Run through activation function
-							superpopulation.oldpopulation[member]->outputLayer[o]->output = processActivationFunction( superpopulation.oldpopulation[member]->outputLayer[o], superpopulation.oldpopulation[member]->outputLayer[o]->output);
-					}
-				}
-				
-				if( oneTime != 1 ){ // if doing normal processing within algorithm rather than a one-off run-through 
-					
-						//=============FIND NORMALISED LMS of ANN AFTER PROCESSING THAT LINE OF DATA=====================
-						if( linearRegression ){
-							superpopulation.oldpopulation[member]->lms += normalisedLms_linearRegression( superpopulation.oldpopulation[member]->outputLayer[0]->output, expectedResultRegression) / dataCount;
-						}
-						else{
-							superpopulation.oldpopulation[member]->lms += normalisedLms( superpopulation.oldpopulation[member]->outputLayer[0]->output, superpopulation.oldpopulation[member]->outputLayer[1]->output, superpopulation.oldpopulation[member]->outputLayer[2]->output, expectedResultLow, expectedResultMed, expectedResultHigh) / dataCount;
-						}
-#ifdef DEEPTEST
-				printf("LMS is currently %f\n",superpopulation.oldpopulation[member]->lms);
-#endif
-				}
-
-    }
-     // Refer: https://stackoverflow.com/questions/3501338/c-read-file-line-by-line
-		fclose(fp);
-		if(oneTime){
-			fclose(fpW); // as it was only opened for oneTime writing to
-		}
-
-		if( line ){
-			free(line);
-		}
-
-   //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
-		
-}
 
 //This function simply prints the values currently contained in the fields of a Node struct
 void printNode(Node* paramNode, int printWeightsArray, int numberHidden){
@@ -947,4 +731,269 @@ void mutate(Individual* member){
 						}
 					}
 			}
+}
+
+//So gonna pass in each data file one by one, so the iteration over different data will happen in main
+void process( char * filename, char * filenameWrite, int member, int linearRegression, float expectedResultLow, float expectedResultMed, float expectedResultHigh, float normaliseCeiling, int oneTime  ){
+		int c = 0; 
+	
+#ifdef TEST
+printf("Just started process function...\n");
+#endif
+	
+		FILE *fp; // This is for reading from data file
+		FILE *fpW; // This is for writing the ANN outputs to logfile
+		
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    
+		fp = fopen(filename, "r");
+    if (fp == NULL){
+				printf("An issue occured when reading in the data file\n");
+        exit(EXIT_FAILURE);
+		}	
+		
+#ifdef TEST
+printf("Just about to read datafile  line by line...\n");
+#endif
+	 
+	 float dataCount = 0;
+   while ((read = getline(&line, &len, fp)) != -1) {
+				dataCount++;
+				
+#ifdef DEEPTEST
+        printf("Retrieved line of length %zu :\n", read);
+        printf("%s", line);
+#endif
+        float float_data;
+        if(linearRegression){
+						getFirstFloat(line, &float_data, 1.0f, linearRegression);
+				}
+				else{
+					getFirstFloat(line, &float_data, normaliseCeiling, linearRegression); // converts the first data value from the string line into a float
+				}
+#ifdef DEEPTEST
+				printf("Float data value is %f\n", float_data);
+#endif
+				
+				//=====INPUT NODE PROCESSING FIRST=========
+				// Decorate the input with the data value
+				if( linearRegression ){ 
+						superpopulation.oldpopulation[member]->inputLayer->input = (float) dataCount; // x value becomes simply the counter
+						expectedResultRegression = float_data; // For regression the hoped-for result is the y value 
+				}
+				else{
+					superpopulation.oldpopulation[member]->inputLayer->input = float_data;
+				}
+				
+				//Multiply input by weight
+				superpopulation.oldpopulation[member]->inputLayer->output = superpopulation.oldpopulation[member]->inputLayer->input * superpopulation.oldpopulation[member]->inputLayer->weight;
+					
+				//Add the bias
+				superpopulation.oldpopulation[member]->inputLayer->output += superpopulation.oldpopulation[member]->inputLayer->bias;
+					
+				//Run through the activation function
+				superpopulation.oldpopulation[member]->inputLayer->output = processActivationFunction( superpopulation.oldpopulation[member]->inputLayer, superpopulation.oldpopulation[member]->inputLayer->output);
+					
+				//==========HIDDEN LAYER PROCESSING============
+				//Now do the same for each hidden-layer node.....
+				int h = 0;
+				for(h = 0; h < superpopulation.oldpopulation[member]->numberOfHiddenNodes; h++){
+						//decorate hidden node input from input node's output
+						superpopulation.oldpopulation[member]->hiddenLayer[h]->input = superpopulation.oldpopulation[member]->inputLayer->output;
+						// Multiply input by weight
+						superpopulation.oldpopulation[member]->hiddenLayer[h]->output = superpopulation.oldpopulation[member]->hiddenLayer[h]->input * superpopulation.oldpopulation[member]->hiddenLayer[h]->weight;
+						// Add in bias
+						superpopulation.oldpopulation[member]->hiddenLayer[h]->output += superpopulation.oldpopulation[member]->hiddenLayer[h]->bias;
+						
+						//Run through activation function
+						superpopulation.oldpopulation[member]->hiddenLayer[h]->output =  processActivationFunction(superpopulation.oldpopulation[member]->hiddenLayer[h],superpopulation.oldpopulation[member]->hiddenLayer[h]->output );	
+				}
+
+				//=======OUTPUT LAYER PROCESSING============
+
+				int o, w;
+				for(o = 0; o < superpopulation.oldpopulation[member]->numberOfOutputNodes; o++){
+							superpopulation.oldpopulation[member]->outputLayer[o]->output = 0.0f; // clear output value 
+							// Sum each result of multiplying input from preceding layer with appropriate weight
+							for(w = 0; w < superpopulation.oldpopulation[member]->numberOfHiddenNodes; w++){
+									// input value (which is output of preceding layer node) * appropriate weight....
+									superpopulation.oldpopulation[member]->outputLayer[o]->output += superpopulation.oldpopulation[member]->hiddenLayer[w]->output * superpopulation.oldpopulation[member]->outputLayer[o]->weights[w];
+							}
+							
+							// Now add in bias
+							superpopulation.oldpopulation[member]->outputLayer[o]->output += superpopulation.oldpopulation[member]->outputLayer[o]->bias;
+						
+							// Run through activation function
+							superpopulation.oldpopulation[member]->outputLayer[o]->output = processActivationFunction( superpopulation.oldpopulation[member]->outputLayer[o], superpopulation.oldpopulation[member]->outputLayer[o]->output);
+				}
+				
+					
+				//=============FIND NORMALISED LMS of ANN AFTER PROCESSING THAT LINE OF DATA=====================
+				if( linearRegression ){
+							superpopulation.oldpopulation[member]->lms += normalisedLms_linearRegression( superpopulation.oldpopulation[member]->outputLayer[0]->output, expectedResultRegression) / dataCount;
+				}
+				else{
+							superpopulation.oldpopulation[member]->lms += normalisedLms( superpopulation.oldpopulation[member]->outputLayer[0]->output, superpopulation.oldpopulation[member]->outputLayer[1]->output, superpopulation.oldpopulation[member]->outputLayer[2]->output, expectedResultLow, expectedResultMed, expectedResultHigh) / dataCount;
+				}
+#ifdef DEEPTEST
+				printf("LMS is currently %f\n",superpopulation.oldpopulation[member]->lms);
+#endif
+
+
+    }
+     // Refer: https://stackoverflow.com/questions/3501338/c-read-file-line-by-line
+		fclose(fp);
+		
+		if( line ){
+			free(line);
+		}
+
+   //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
+		
+}
+
+//So gonna pass in each data file one by one, so the iteration over different data will happen in main
+void processBestOneTime( char * filename, char * filenameWrite, int member, int linearRegression, float expectedResultLow, float expectedResultMed, float expectedResultHigh, float normaliseCeiling, int oneTime  ){
+		int c = 0; 
+	
+#ifdef TEST
+printf("Just started process function...\n");
+#endif
+	
+		FILE *fp; // This is for reading from data file
+		FILE *fpW; // This is for writing the ANN outputs to logfile
+		
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    
+		fp = fopen(filename, "r");
+    if (fp == NULL){
+				printf("An issue occured when reading in the data file\n");
+        exit(EXIT_FAILURE);
+		}
+		
+		if(oneTime == 1){ // e.g. one off processing of data throguh ANN, e.g. to log output from best ANN once algorithm done
+			fpW = fopen(filenameWrite, "a");
+			if( fpW == NULL ){
+					printf("An issue occurred when opening file to write\n");
+					exit(EXIT_FAILURE);
+			}
+		}
+		
+#ifdef TEST
+printf("Just about to read datafile  line by line...\n");
+#endif
+	 
+	 float dataCount = 0;
+   while ((read = getline(&line, &len, fp)) != -1) {
+				dataCount++;
+				
+#ifdef DEEPTEST
+        printf("Retrieved line of length %zu :\n", read);
+        printf("%s", line);
+#endif
+					float float_data;
+					if(linearRegression){
+							getFirstFloat(line, &float_data, 1.0f, linearRegression);
+					}
+					else{
+						getFirstFloat(line, &float_data, normaliseCeiling, linearRegression); // converts the first data value from the string line into a float
+					}
+#ifdef DEEPTEST
+				printf("Float data value is %f\n", float_data);
+#endif
+					//=====INPUT NODE PROCESSING FIRST=========
+					// Decorate the input with the data value
+					if( linearRegression ){ 
+							superpopulation.miscpopulation[0]->inputLayer->input = (float) dataCount;
+							expectedResultRegression = float_data; // For regression the hoped-for result is the y value 
+					}
+					else{
+							superpopulation.miscpopulation[0]->inputLayer->input = float_data;
+					}
+				
+					//Multiply input by weight
+					superpopulation.miscpopulation[0]->inputLayer->output = superpopulation.miscpopulation[0]->inputLayer->input * superpopulation.miscpopulation[0]->inputLayer->weight;
+					
+					//Add the bias
+					superpopulation.miscpopulation[0]->inputLayer->output += superpopulation.miscpopulation[0]->inputLayer->bias;
+					
+					//Run through the activation function
+					superpopulation.miscpopulation[0]->inputLayer->output = processActivationFunction( superpopulation.miscpopulation[0]->inputLayer, superpopulation.miscpopulation[0]->inputLayer->output );
+					
+					//==========HIDDEN LAYER PROCESSING============
+					//Now do the same for each hidden-layer node.....
+					int h = 0;
+					for(h = 0; h < superpopulation.miscpopulation[0]->numberOfHiddenNodes; h++){
+						//decorate hidden node input from input node's output
+						
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->input = superpopulation.miscpopulation[0]->inputLayer->output;
+						// Multiply input by weight
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->output = superpopulation.miscpopulation[0]->hiddenLayer[h]->input * superpopulation.miscpopulation[0]->hiddenLayer[h]->weight;
+						// Add in bias
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->output += superpopulation.miscpopulation[0]->hiddenLayer[h]->bias;
+						
+						//Run through activation function
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->output = processActivationFunction(superpopulation.miscpopulation[0]->hiddenLayer[h], superpopulation.miscpopulation[0]->hiddenLayer[h]->output); 
+					}
+			
+				//=======OUTPUT LAYER PROCESSING============
+
+					int o, w;
+					if(linearRegression){
+						superpopulation.miscpopulation[0]->outputLayer[0]->output = 0.0f; // clear output value 
+						for(w = 0; w < superpopulation.miscpopulation[0]->numberOfHiddenNodes; w++){
+										// input value (which is output of preceding layer node) * appropriate weight....
+										superpopulation.miscpopulation[0]->outputLayer[0]->output += superpopulation.miscpopulation[0]->hiddenLayer[w]->output * superpopulation.miscpopulation[0]->outputLayer[0]->weights[w];
+						}
+						// Now add in bias
+						superpopulation.miscpopulation[0]->outputLayer[0]->output += superpopulation.miscpopulation[0]->outputLayer[0]->bias;
+							
+						// Run through activation function
+						superpopulation.miscpopulation[0]->outputLayer[0]->output = processActivationFunction( superpopulation.miscpopulation[0]->outputLayer[0], superpopulation.miscpopulation[0]->outputLayer[0]->output);
+														
+					}
+					else{ // not linear regression
+						
+						for(o = 0; o < superpopulation.miscpopulation[0]->numberOfOutputNodes; o++){
+								superpopulation.miscpopulation[0]->outputLayer[o]->output = 0.0f; // clear output value 
+								// Sum each result of multiplying input from preceding layer with appropriate weight
+								for(w = 0; w < superpopulation.miscpopulation[0]->numberOfHiddenNodes; w++){
+										// input value (which is output of preceding layer node) * appropriate weight....
+										superpopulation.miscpopulation[0]->outputLayer[o]->output += superpopulation.miscpopulation[0]->hiddenLayer[w]->output * superpopulation.miscpopulation[0]->outputLayer[o]->weights[w];
+								}
+								
+								// Now add in bias
+								superpopulation.miscpopulation[0]->outputLayer[o]->output += superpopulation.miscpopulation[0]->outputLayer[o]->bias;
+							
+								// Run through activation function
+								superpopulation.miscpopulation[0]->outputLayer[o]->output = processActivationFunction(	superpopulation.miscpopulation[0]->outputLayer[o],superpopulation.miscpopulation[0]->outputLayer[o]->output);
+								
+								if( !linearRegression){
+												fprintf(fpW, "%f,",superpopulation.miscpopulation[0]->outputLayer[o]->output);
+								}
+						}
+					}
+					
+					if(  (!linearRegression) ){ // Close the logged 3 outputs line that is being written
+						fprintf(fpW,"\n"); // end that line by writing newline character
+					}
+					if( (linearRegression)  ){ // only use first output node for linear regression
+							fprintf(fpW,"%f,\n",superpopulation.miscpopulation[0]->outputLayer[0]->output);
+					}
+    }
+     // Refer: https://stackoverflow.com/questions/3501338/c-read-file-line-by-line
+		fclose(fp);
+		if(oneTime){
+			fclose(fpW); // as it was only opened for oneTime writing to
+		}
+
+		if( line ){
+			free(line);
+		}
+
+   //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
 }
