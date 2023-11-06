@@ -27,7 +27,7 @@ void initialiseVariables(){
 	expectedResultRegression = 0.0f;
 	expectedResultTriClassification = 1.0f;
 	softmaxLength = 3;
-	numberActivationFunctions = 1;
+	numberActivationFunctions = 4;
 	
 	normalise = 0; // default don't normalise for triclassification
 	
@@ -1052,6 +1052,192 @@ printf("Just about to read datafile  line by line...\n");
 							fprintf(fpW,"%f,\n",superpopulation.miscpopulation[0]->outputLayer[0]->output);
 					}
     }
+     // Refer: https://stackoverflow.com/questions/3501338/c-read-file-line-by-line
+		fclose(fp);
+		if(oneTime){
+			fclose(fpW); // as it was only opened for oneTime writing to
+		}
+
+		if( line ){
+			free(line);
+		}
+
+   //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
+}
+
+void classify( int expectedPressure, char * filename, char * filenameWrite, int member, int linearRegression, float expectedResultLow, float expectedResultMed, float expectedResultHigh, float normaliseCeiling, int oneTime  ){
+
+		// set variables to zero
+		int c = 0; 
+		triClassificationOutcome[0] = 0.0f;
+		triClassificationOutcome[1] = 0.0f;
+		triClassificationOutcome[2] = 0.0f;
+	
+#ifdef TEST
+printf("Just started classify function...\n");
+#endif
+	
+		FILE *fp; // This is for reading from data file
+		FILE *fpW; // This is for writing the ANN outputs to logfile
+		
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    
+		fp = fopen(filename, "r");
+    if (fp == NULL){
+				printf("An issue occured when reading in the data file\n");
+        exit(EXIT_FAILURE);
+		}
+		
+		if(oneTime == 1){ // e.g. one off processing of data throguh ANN, e.g. to log output from best ANN once algorithm done
+			fpW = fopen(filenameWrite, "a");
+			if( fpW == NULL ){
+					printf("An issue occurred when opening file to write\n");
+					exit(EXIT_FAILURE);
+			}
+		}
+		
+#ifdef TEST
+printf("Just about to read datafile  line by line...\n");
+#endif
+	 
+	 float dataCount = 0;
+   while ((read = getline(&line, &len, fp)) != -1) {
+				dataCount++;
+				
+#ifdef DEEPTEST
+        printf("Retrieved line of length %zu :\n", read);
+        printf("%s", line);
+#endif
+					float float_data;
+					if(linearRegression){
+							getFirstFloat(line, &float_data, 1.0f, linearRegression);
+					}
+					else{
+						getFirstFloat(line, &float_data, normaliseCeiling, linearRegression); // converts the first data value from the string line into a float
+					}
+#ifdef DEEPTEST
+				printf("Float data value is %f\n", float_data);
+#endif
+					//=====INPUT NODE PROCESSING FIRST=========
+					// Decorate the input with the data value
+					if( linearRegression ){ 
+							superpopulation.miscpopulation[0]->inputLayer->input = (float) dataCount;
+							expectedResultRegression = float_data; // For regression the hoped-for result is the y value 
+					}
+					else{
+							superpopulation.miscpopulation[0]->inputLayer->input = float_data;
+					}
+				
+					//Multiply input by weight
+					superpopulation.miscpopulation[0]->inputLayer->output = superpopulation.miscpopulation[0]->inputLayer->input * superpopulation.miscpopulation[0]->inputLayer->weight;
+					
+					//Add the bias
+					superpopulation.miscpopulation[0]->inputLayer->output += superpopulation.miscpopulation[0]->inputLayer->bias;
+					
+					//Run through the activation function
+					superpopulation.miscpopulation[0]->inputLayer->output = processActivationFunction( superpopulation.miscpopulation[0]->inputLayer, superpopulation.miscpopulation[0]->inputLayer->output );
+					
+					//==========HIDDEN LAYER PROCESSING============
+					//Now do the same for each hidden-layer node.....
+					int h = 0;
+					for(h = 0; h < superpopulation.miscpopulation[0]->numberOfHiddenNodes; h++){
+						//decorate hidden node input from input node's output
+						
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->input = superpopulation.miscpopulation[0]->inputLayer->output;
+						// Multiply input by weight
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->output = superpopulation.miscpopulation[0]->hiddenLayer[h]->input * superpopulation.miscpopulation[0]->hiddenLayer[h]->weight;
+						// Add in bias
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->output += superpopulation.miscpopulation[0]->hiddenLayer[h]->bias;
+						
+						//Run through activation function
+						superpopulation.miscpopulation[0]->hiddenLayer[h]->output = processActivationFunction(superpopulation.miscpopulation[0]->hiddenLayer[h], superpopulation.miscpopulation[0]->hiddenLayer[h]->output); 
+					}
+			
+				//=======OUTPUT LAYER PROCESSING============
+
+					int o, w;
+					if(linearRegression){
+						superpopulation.miscpopulation[0]->outputLayer[0]->output = 0.0f; // clear output value 
+						for(w = 0; w < superpopulation.miscpopulation[0]->numberOfHiddenNodes; w++){
+										// input value (which is output of preceding layer node) * appropriate weight....
+										superpopulation.miscpopulation[0]->outputLayer[0]->output += superpopulation.miscpopulation[0]->hiddenLayer[w]->output * superpopulation.miscpopulation[0]->outputLayer[0]->weights[w];
+						}
+						// Now add in bias
+						superpopulation.miscpopulation[0]->outputLayer[0]->output += superpopulation.miscpopulation[0]->outputLayer[0]->bias;
+							
+						// Run through activation function
+						superpopulation.miscpopulation[0]->outputLayer[0]->output = processActivationFunction( superpopulation.miscpopulation[0]->outputLayer[0], superpopulation.miscpopulation[0]->outputLayer[0]->output);
+														
+					}
+					else{ // not linear regression
+						
+						for(o = 0; o < superpopulation.miscpopulation[0]->numberOfOutputNodes; o++){
+								superpopulation.miscpopulation[0]->outputLayer[o]->output = 0.0f; // clear output value 
+								// Sum each result of multiplying input from preceding layer with appropriate weight
+								for(w = 0; w < superpopulation.miscpopulation[0]->numberOfHiddenNodes; w++){
+										// input value (which is output of preceding layer node) * appropriate weight....
+										superpopulation.miscpopulation[0]->outputLayer[o]->output += superpopulation.miscpopulation[0]->hiddenLayer[w]->output * superpopulation.miscpopulation[0]->outputLayer[o]->weights[w];
+								}
+								
+								// Now add in bias
+								superpopulation.miscpopulation[0]->outputLayer[o]->output += superpopulation.miscpopulation[0]->outputLayer[o]->bias;
+							
+								// Run through activation function
+								superpopulation.miscpopulation[0]->outputLayer[o]->output = processActivationFunction(	superpopulation.miscpopulation[0]->outputLayer[o],superpopulation.miscpopulation[0]->outputLayer[o]->output);
+								
+								if( !linearRegression){
+												fprintf(fpW, "%f,",superpopulation.miscpopulation[0]->outputLayer[o]->output);
+								}
+						}
+					}
+					
+					if(  (!linearRegression) ){ // Close the logged 3 outputs line that is being written
+						fprintf(fpW,"\n"); // end that line by writing newline character
+					}
+					if( (linearRegression)  ){ // only use first output node for linear regression
+							fprintf(fpW,"%f,\n",superpopulation.miscpopulation[0]->outputLayer[0]->output);
+					}
+					
+					float values[3];
+					values[0] = superpopulation.miscpopulation[0]->outputLayer[0]->output;
+					values[1] = superpopulation.miscpopulation[0]->outputLayer[1]->output;
+					values[2] = superpopulation.miscpopulation[0]->outputLayer[2]->output;
+					
+					
+					
+					softmax( softmaxResults, softmaxLength, values, softmaxLength);
+					argmax( argmaxResults, softmaxLength, softmaxResults, softmaxLength );
+					
+					// Running Classification Tallies...
+					if( (expectedPressure == 0) && (argmaxResults[0] == 1.0f) ){ // if correct low pressure classification 
+								triClassificationOutcome[0] += 1.0f;							
+					}
+					else if( (expectedPressure == 1) && (argmaxResults[1] == 1.0f) ){ // if correct medium pressure classification 
+							triClassificationOutcome[1] += 1.0f;	
+					}
+					else if( (expectedPressure == 2) && (argmaxResults[2] == 1.0f) ){ // if correct high pressure classification
+							triClassificationOutcome[2] += 1.0f;
+					}
+    }
+    
+    // Now determine classification success
+    
+    if( (triClassificationOutcome[0] > triClassificationOutcome[1] ) && (triClassificationOutcome[0] > triClassificationOutcome[2] ) ){
+			
+			printf("Low Pressure is the classification outcome\n");
+		}
+		if( (triClassificationOutcome[1] > triClassificationOutcome[0] ) && (triClassificationOutcome[1] > triClassificationOutcome[2] ) ){
+			
+			printf("Medium Pressure is the classification outcome\n");
+		}
+		if( (triClassificationOutcome[2] > triClassificationOutcome[0] ) && (triClassificationOutcome[2] > triClassificationOutcome[1] ) ){
+			
+			printf("High Pressure is the classification outcome\n");
+		}
+    
+    
      // Refer: https://stackoverflow.com/questions/3501338/c-read-file-line-by-line
 		fclose(fp);
 		if(oneTime){
