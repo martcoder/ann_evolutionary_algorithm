@@ -25,12 +25,18 @@ void initialiseVariables(){
 	linR = 0; // Default is that linear regression is not being solved, in main sets to 1 if linear regression cmd line arg set
 	oneTime = 0; // Default of 0, generally not running data through an ANN one-time, but processing for the algorithm
 	expectedResultRegression = 0.0f;
-	expectedResultTriClassification = 10.0f;
-	numberActivationFunctions = 4;
+	expectedResultTriClassification = 1.0f;
+	softmaxLength = 3;
+	numberActivationFunctions = 1;
 	
 	normalise = 0; // default don't normalise for triclassification
 	
 	normaliseScaler = 2.0f;
+	
+	triClassificationOutcome[0] = 0.0f;
+	triClassificationOutcome[1] = 0.0f;
+	triClassificationOutcome[2] = 0.0f;
+	expectedPressure = 0; 
 	
 	numberOfLowDataFiles = 3;
 	numberOfMedDataFiles = 4;
@@ -44,7 +50,7 @@ void initialiseVariables(){
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 499; //global variable
+	numCycles = 199; //global variable
 	nodeSizeMemory = ( sizeof(float) * 6 ) + (sizeof(int)) + ( sizeof(float) * hiddenMax );
 	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
 	
@@ -224,53 +230,114 @@ float normalisedLms_linearRegression( float a, float expectedA ){
 #endif
 		return lmsA;
 }
+// This function uses the softmax equation described here: https://www.pinecone.io/learn/softmax-activation/
+// ... it essentially normalises the values into a range of 0 to 1, with negative values producing very small numbers
+void softmax(float *results, int lengthResults, float *values, int lengthVals){
+	
+		int c = 0; int s = 0;
+		
+		float numerator = 0.0f;
+		float denominator = 0.0f;
+		for(c = 0; c < lengthVals; c++){
+				 denominator += exp(values[c]);
+		}
+		
+		for(s = 0; s <  lengthResults; s++){
+			numerator = exp(values[s]);
+			results[s] = numerator / denominator; 
+		}
+}
+
+// This function replaces the largest value with 1.0f, and all other values with 0.0f
+void argmax(float *results, int lengthResults, float *values, int lengthVals){
+	
+	int largestIndex = 0;
+	float max = 0.0f; 
+	int c = 0; 
+	for(c = 0; c < lengthVals; c++){
+			if(values[c] > max){
+					max = values[c];
+					largestIndex = c;
+			}
+	}
+	
+	for(c = 0; c < lengthVals; c++){	
+		if( c == largestIndex ){
+				results[c] = 1.0f;
+		}
+		else{
+				results[c] = 0.0f;
+		}
+	}
+}
 
 float normalisedLms( float a, float b, float c, float expectedA, float expectedB, float expectedC){
-  float x,y,z;
-  float lmsA, lmsB, lmsC;
-  //Ensure that no division by zero happens....
-  if(a == 0.0){ a = 0.0000001f;}
-  if(b == 0.0){ b = 0.0000001f;}
-  if(c == 0.0){ c = 0.0000001f;}
+		if(a == 0.0){ a = 0.0000001f;}
+		if(b == 0.0){ b = 0.0000001f;}
+		if(c == 0.0){ c = 0.0000001f;}
+
+		softmaxValues[0] = a;
+		softmaxValues[1] = b;
+		softmaxValues[2] = c;
   
-  //Now calculate LMS depending on which value is the largest...
-  // e.g. for LOW pressure the a value should ideally be largest
-	if( (a > b) && (a > c) ){ // a largest
-		x = 1.0f * expectedResultTriClassification; // a / a
-		y = (a/b) * expectedResultTriClassification;
-		z = (a/c) * expectedResultTriClassification;
+		// Populate the softmaxResults array
+		softmax( softmaxResults, softmaxLength, softmaxValues, softmaxLength );
 		
-		lmsA = floatAbs(x - expectedA);
-		lmsB = floatAbs(y - expectedB);
-		lmsC = floatAbs(z - expectedC);
+		argmax( argmaxResults, softmaxLength, softmaxResults, softmaxLength );
 		
-		return (lmsA + lmsB + lmsC) * 0.33333f;
+		if( (expectedA == 1.0f) && (argmaxResults[0] == 1.0f ) ){
+				return 0.001f; // nice low lms
+		}
+		else if( (expectedB == 1.0f) && (argmaxResults[1] == 1.0f ) ){
+				return 0.001f; // nice low lms
+		}
+		else if( (expectedC == 1.0f) && (argmaxResults[2] == 1.0f ) ){
+				return 0.001f; // nice low lms
+		}
+		else{
+				//Didnt get the desired result, so return a higher lms....
+				return 0.01f;
+		}
+  
+		//Now calculate LMS depending on which value is the largest...
+		// e.g. for LOW pressure the a value should ideally be largest
+		/*if( (a > b) && (a > c) ){ // a largest
+			x = 1.0f * expectedResultTriClassification; // a / a
+			y = (a/b) * expectedResultTriClassification;
+			z = (a/c) * expectedResultTriClassification;
+			
+			lmsA = floatAbs(x - expectedA);
+			lmsB = floatAbs(y - expectedB);
+			lmsC = floatAbs(z - expectedC);
+			
+			return (lmsA + lmsB + lmsC) * 0.33333f;
+			
+		}
 		
-	}
-	
-	if( (b > a) && (b > c) ){ // b largest
-		x = (b / a) * expectedResultTriClassification;
-		y = 1.0f * expectedResultTriClassification; // b / b
-		z = ( b / c ) * expectedResultTriClassification;
+		if( (b > a) && (b > c) ){ // b largest
+			x = (b / a) * expectedResultTriClassification;
+			y = 1.0f * expectedResultTriClassification; // b / b
+			z = ( b / c ) * expectedResultTriClassification;
+			
+			lmsA = floatAbs(x - expectedA);
+			lmsB = floatAbs(y - expectedB);
+			lmsC = floatAbs(z - expectedC);
+			
+			return (lmsA + lmsB + lmsC) * 0.33333f;
+		}
 		
-		lmsA = floatAbs(x - expectedA);
-		lmsB = floatAbs(y - expectedB);
-		lmsC = floatAbs(z - expectedC);
-		
-		return (lmsA + lmsB + lmsC) * 0.33333f;
-	}
-	
-	if( (c > b) && (c > a) ){ // c largest
-		x = ( c / a ) * expectedResultTriClassification;
-		y = ( c / b ) * expectedResultTriClassification;
-		z = 1.0f * expectedResultTriClassification; // c/c;
-		
-		lmsA = floatAbs(x - expectedA);
-		lmsB = floatAbs(y - expectedB);
-		lmsC = floatAbs(z - expectedC);
-		
-		return (lmsA + lmsB + lmsC) * 0.33333f;
-	}
+		if( (c > b) && (c > a) ){ // c largest
+			x = ( c / a ) * expectedResultTriClassification;
+			y = ( c / b ) * expectedResultTriClassification;
+			z = 1.0f * expectedResultTriClassification; // c/c;
+			
+			lmsA = floatAbs(x - expectedA);
+			lmsB = floatAbs(y - expectedB);
+			lmsC = floatAbs(z - expectedC);
+			
+			return (lmsA + lmsB + lmsC) * 0.33333f;
+		}*/
+  
 }
 
 //This function takes the line of data as a string, and extracts the first value as a float

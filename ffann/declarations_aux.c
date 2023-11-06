@@ -54,6 +54,13 @@ float expectedResultRegression;
 float expectedResultTriClassification;
 int numberActivationFunctions; 
 
+float triClassificationOutcome[3]; // low pressure, med pressure, high pressure. 
+int expectedPressure; 
+
+int softmaxLength; 
+float softmaxValues[3]; 
+float softmaxResults[3];
+float argmaxResults[3];
 
 Population superpopulation;
 
