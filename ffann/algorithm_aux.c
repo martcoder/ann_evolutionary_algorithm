@@ -27,7 +27,7 @@ void initialiseVariables(){
 	expectedResultRegression = 0.0f;
 	expectedResultTriClassification = 1.0f;
 	softmaxLength = 3;
-	numberActivationFunctions = 4;
+	numberActivationFunctions = 1;
 	
 	normalise = 0; // default don't normalise for triclassification
 	
@@ -44,18 +44,25 @@ void initialiseVariables(){
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
 	popsize = 189;
+	miscPopLength = 10;
 	hiddenMax = 10;
 	hiddenMin = 4;
 	outputLayerLength = 3;
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 199; //global variable
-	nodeSizeMemory = ( sizeof(float) * 6 ) + (sizeof(int)) + ( sizeof(float) * hiddenMax );
-	individualSizeMemory = popsize * ( nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength) + (sizeof(float) * 5) );
+	numCycles = 99; //global variable
+	// NODESIZEMEMORY:
+	// 5 float variables. 
+	// An array of float weights, therefore up to hiddenMax number of floats, and an int for activationFunction
+	nodeSizeMemory = ( sizeof(float) * 5 ) + ( sizeof(float) * hiddenMax ) + (sizeof(int)) ;
+	
+	// 5 floats, 2 integers, inputNode, hiddenLayer Node array, outputLayer Node array
+	individualSizeMemory = ( (sizeof(float) * 5) + ( sizeof(int) * 2) + nodeSizeMemory + (hiddenMax * nodeSizeMemory) + (nodeSizeMemory * outputLayerLength)  );
 	
 	elitism = 1 + ( popsize / 10.0 );
 	tournamentSize = 8;
+	tournArray = (Individual**) malloc( individualSizeMemory * tournamentSize );
 }
 
 float floatAbs(float value){
@@ -131,7 +138,7 @@ void constructNode(Node * nodestruct){
 	nodestruct->input = 0.0f;
 	nodestruct->weight = getRandomWeightValueFloat();
 	nodestruct->bias = getRandomBiasValueFloat(weightMax/5.0, weightMax/-5.0);
-	nodestruct->weights = (float *) malloc( sizeof(float) * hiddenMax );
+	nodestruct->weights = (float *) malloc( sizeof(float) * hiddenMax ); // not needed for input layer, but okay. 
 	nodestruct->output = 0.0f;
 	nodestruct->lms = 2.0f; // initialising to a high value...
 	nodestruct->activationFunction = getRandomActivationFunction(); 
@@ -644,7 +651,7 @@ void tournament(Population* superpopulation, int newpopMemberIndex){
 		index8 = getRandomIndividualIndex();
 	}
 	
-	Individual** tournArray = (Individual**) malloc( individualSizeMemory * tournamentSize );
+	
 	
 	#ifdef AUXTEST
 	printf("Chosen tournament member indexes are %d %d %d %d %d %d %d %d\n",index1, index2, index3, index4, index5, index6, index7, index8);
@@ -1065,6 +1072,20 @@ printf("Just about to read datafile  line by line...\n");
    //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
 }
 
+void readInAnnIntoBest(char * filename){
+	// File format should be: 
+	/*
+	 *       line0 contains: inputlayer weight
+	 * 				line1 contains: inputlayer bias
+	 * 				line2 contains: 
+	 * 
+	 * 
+	 * */
+	
+	FILE *fp;
+
+}
+
 void classify( int expectedPressure, char * filename, char * filenameWrite, int member, int linearRegression, float expectedResultLow, float expectedResultMed, float expectedResultHigh, float normaliseCeiling, int oneTime  ){
 
 		// set variables to zero
@@ -1249,4 +1270,89 @@ printf("Just about to read datafile  line by line...\n");
 		}
 
    //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
+}
+
+void freeMemory(){
+		int c = 0; int d = 0; 
+		//FREE THE TOURNAMENT ARRAY
+		for(c = 0; c < tournamentSize; c++){
+				free(tournArray[c]);
+		}
+		free(tournArray);
+		
+		// FREE LMS RESULT ARRAY
+		free(lmsResult); 
+		
+		// FREE MISCPOPULATION
+		for(c = 0; c < miscPopLength; c++){
+				//FREE EACH NODE'S WEIGHTS ARRAY
+				free(superpopulation.miscpopulation[c]->inputLayer->weights);
+				
+				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
+				for(d = 0; d < hiddenMax; d++){
+						free(superpopulation.miscpopulation[c]->hiddenLayer[d]->weights);
+						free(superpopulation.miscpopulation[c]->hiddenLayer[d]);
+				}
+				free(superpopulation.miscpopulation[c]->hiddenLayer);
+				
+				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
+				for(d = 0; d < outputLayerLength; d++){
+						free(superpopulation.miscpopulation[c]->outputLayer[d]->weights);
+						free(superpopulation.miscpopulation[c]->outputLayer[d]);
+				}
+				free(superpopulation.miscpopulation[c]->outputLayer);
+				
+				free(superpopulation.miscpopulation[c]);
+		}
+		free(superpopulation.miscpopulation);
+		
+		// FREE OLDPOPULATION
+		for(c = 0; c < popsize; c++){
+				//FREE EACH NODE'S WEIGHTS ARRAY
+				free(superpopulation.oldpopulation[c]->inputLayer->weights);
+				
+				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
+				for(d = 0; d < hiddenMax; d++){
+						free(superpopulation.oldpopulation[c]->hiddenLayer[d]->weights);
+						free(superpopulation.oldpopulation[c]->hiddenLayer[d]);
+				}
+				free(superpopulation.oldpopulation[c]->hiddenLayer);
+				
+				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
+				for(d = 0; d < outputLayerLength; d++){
+						free(superpopulation.oldpopulation[c]->outputLayer[d]->weights);
+						free(superpopulation.oldpopulation[c]->outputLayer[d]);
+				}
+				free(superpopulation.oldpopulation[c]->outputLayer);
+				
+				free(superpopulation.oldpopulation[c]);
+		}
+		free(superpopulation.oldpopulation);
+		
+		
+		// FREE NEW POPULATION
+
+		for(c = 0; c < popsize; c++){
+				//FREE EACH NODE'S WEIGHTS ARRAY
+				free(superpopulation.newpopulation[c]->inputLayer->weights);
+				
+				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
+				for(d = 0; d < hiddenMax; d++){
+						free(superpopulation.newpopulation[c]->hiddenLayer[d]->weights);
+						free(superpopulation.newpopulation[c]->hiddenLayer[d]);
+				}
+				free(superpopulation.newpopulation[c]->hiddenLayer);
+				
+				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
+				for(d = 0; d < outputLayerLength; d++){
+						free(superpopulation.newpopulation[c]->outputLayer[d]->weights);
+						free(superpopulation.newpopulation[c]->outputLayer[d]);
+				}
+				free(superpopulation.newpopulation[c]->outputLayer);
+				
+				free(superpopulation.newpopulation[c]);
+		}
+		free(superpopulation.newpopulation);
+		
+		printf("Algorithm complete! ... and all the malloc-allocated memory has also now been freed!\n");
 }
