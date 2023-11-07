@@ -199,7 +199,7 @@ int main(int argc, char * argv[]){
 		//#Process the input data through each population member
 		printf("cycle is %d\n",c); //+str(t)+", just about to process member "+str(x))    
 
-		//#pragma omp parallel for num_threads(4)
+		#pragma omp parallel for num_threads(4)
 		for(m=0; m < popsize; m++){ // #e.g. for each member FFANN, process it
 			printf("Just about to process member %d\n",m);
 			superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing so that a fresh lms can be calculated
