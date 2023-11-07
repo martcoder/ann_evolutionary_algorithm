@@ -33,20 +33,27 @@ The algorithm itself is implemented in C. The artifical neural networks are feed
 so far is included in the FFANN folder. 
 
 The algorithm has been implemented to allow two different modes of functionality:
-Mode0- linear regression
-Mode1- tri-classification of data
+Mode0- linear regression which uses ANNs with only one output node
+Mode1- tri-classification of data which uses softmax and argmax on each ANN's three output nodes. 
 
-Some python scripts are also present as they were useful in automatically generating hundreds of struct 
-declarations in the C code file (as C doesn't have dynamic arrays, the approach taken was to declare the
-maximum amount of structs needed, then use up to that maximum when executing). They also proved useful
-for generating data to test with, and also for plotting graphs of results. 
+===CODE NOTES====================
+C does not allow lambda declarations so all possible structs are pre-declared. This means that population sizes are currently limited 
+to 199 although this can be increased by simply including more declarations in declarations_aux.c.
+ 
+Some python scripts are present as they were useful in automatically generating the hundreds of struct 
+declarations (the approach taken was to declare the maximum amount of structs needed, then use up to that maximum when executing). 
+Python is also used for generating data to test with, and also for plotting graphs of results using matplotlib. 
 
+The main for-loop which loops over each member of a population is implemented to use OpenMP parallel-processing across 4 cores, 
+with this number of cores hard-coded, so number of cores needs adjusting manually. 
+
+Memory allocated using malloc is freed at the end of main in algorithm.c  
 
 ===COMPILING AND RUNNING=========
 
     C CODE FILES:-  algorithm.c, algorithm_aux.c, and declarations_aux.c
       
-    Python CODE FILES:- plotData.py  writeLinearData.py and more....
+    Python CODE FILES:- plotData.py  writeLinearData.py and more.... PLEASE HAVE MATPLOTLIB library installed. 
 
     Bash CODE FILES:- compile.sh  runAlgo.sh
             
@@ -54,6 +61,14 @@ for generating data to test with, and also for plotting graphs of results.
 
     COMPILING:--- Included in the repository is a compile.sh shell script, which can be ran using: 
                   source compile.sh
+
+                  However to manually compile you can use the following on linux: 
+                  gcc -fopenmp algorithm.c -lm -o  algorithm.exe
+
+                  Note that the above compile command utilises OpenMP for parallelisation of 
+                  for-loops, and assumes that 4 cores are available to process over,
+                  if you want to use more than 4 cores for parallel processing you will need 
+                  to change the number of cores manually in the algorithm.c code. 
 
     EXECUTING:--- The compile script generates algorithm.exe, which can then be executed as follows: 
     
@@ -69,7 +84,6 @@ for generating data to test with, and also for plotting graphs of results.
                   where a c tells the program to use specifically the cepstrogram-processed accel data
                   where a r tells the program to use running-average processed accel data
                   where the optional n tells the program to normalise the input data
-                  
 
     QUICKSTART:-- The following command deletes existing log files, compiles the code, runs the code, then also graphs the 
                   results, using default option of doing linear regression: 
