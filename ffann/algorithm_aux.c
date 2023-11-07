@@ -43,7 +43,7 @@ void initialiseVariables(){
 	numberOfHighDataFiles = 3;
 	defaultNumberOutputNodes = 3;
 	bestlms = 1000000000000000000.0; // assigning initial high value
-	popsize = 189;
+	popsize = 16;
 	miscPopLength = 10;
 	hiddenMax = 10;
 	hiddenMin = 4;
@@ -51,7 +51,7 @@ void initialiseVariables(){
 	weightMax = 5.0f;
 	//Set global variables values
 	lmsResult = (float*) malloc(sizeof(float) * popsize);
-	numCycles = 99; //global variable
+	numCycles = 2; //global variable
 	// NODESIZEMEMORY:
 	// 5 float variables. 
 	// An array of float weights, therefore up to hiddenMax number of floats, and an int for activationFunction
@@ -1276,83 +1276,214 @@ void freeMemory(){
 		int c = 0; int d = 0; 
 		//FREE THE TOURNAMENT ARRAY
 		for(c = 0; c < tournamentSize; c++){
-				free(tournArray[c]);
-		}
-		free(tournArray);
-		
-		// FREE LMS RESULT ARRAY
-		free(lmsResult); 
-		
-		// FREE MISCPOPULATION
-		for(c = 0; c < miscPopLength; c++){
-				//FREE EACH NODE'S WEIGHTS ARRAY
-				free(superpopulation.miscpopulation[c]->inputLayer->weights);
+			
+			//FREE INPUT NODE'S WEIGHTS ARRAY
+				if(tournArray[c]->inputLayer->weights){
+					free(tournArray[c]->inputLayer->weights);
+					tournArray[c]->inputLayer->weights = NULL;
+				}
+				
 				
 				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
 				for(d = 0; d < hiddenMax; d++){
-						free(superpopulation.miscpopulation[c]->hiddenLayer[d]->weights);
-						free(superpopulation.miscpopulation[c]->hiddenLayer[d]);
+						if(tournArray[c]->hiddenLayer[d]->weights){
+							free(tournArray[c]->hiddenLayer[d]->weights);
+							tournArray[c]->hiddenLayer[d]->weights = NULL;
+						}
+						
+						/* // DON'T NEED THE NODES THEMSELVES AS THEY WEREN'T MALLOCED IN THE FIRST PLACE
+						if(tournArray[c]->hiddenLayer[d]){
+							free(tournArray[c]->hiddenLayer[d]);
+						}*/
 				}
-				free(superpopulation.miscpopulation[c]->hiddenLayer);
+				
+				if(tournArray[c]->hiddenLayer){
+					free(tournArray[c]->hiddenLayer);
+					tournArray[c]->hiddenLayer = NULL;
+				}
 				
 				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
 				for(d = 0; d < outputLayerLength; d++){
-						free(superpopulation.miscpopulation[c]->outputLayer[d]->weights);
-						free(superpopulation.miscpopulation[c]->outputLayer[d]);
+						if(tournArray[c]->outputLayer[d]->weights){
+							free(tournArray[c]->outputLayer[d]->weights);
+							tournArray[c]->outputLayer[d]->weights = NULL;
+						}
+						/*if(tournArray[c]->outputLayer[d]){
+							free(tournArray[c]->outputLayer[d]);
+						}*/
 				}
-				free(superpopulation.miscpopulation[c]->outputLayer);
-				
-				free(superpopulation.miscpopulation[c]);
+				if(tournArray[c]->outputLayer){
+					free(tournArray[c]->outputLayer);
+					tournArray[c]->outputLayer = NULL;
+				}
+			
+			/*if(tournArray[c]){
+				free(tournArray[c]);
+				tournArray[c] = NULL;
+			}*/
 		}
-		free(superpopulation.miscpopulation);
+		
+		if(tournArray){
+			free(tournArray);
+			tournArray = NULL;
+		}
+		
+		// FREE LMS RESULT ARRAY
+		if(lmsResult){
+			free(lmsResult); 
+			lmsResult = NULL;
+		}
+		
+		// FREE MISCPOPULATION
+
+			// NOW FREEING THE FIRST 2 INDIVIDUALS FROM MISCPOP ... BEST and SORTING
+		for(c = 0; c < miscPopLength - tournamentSize; c++){
+				//FREE INPUT NODE'S WEIGHTS ARRAY
+				if(superpopulation.miscpopulation[c]->inputLayer->weights){
+					free(superpopulation.miscpopulation[c]->inputLayer->weights);
+					superpopulation.miscpopulation[c]->inputLayer->weights = NULL;
+				}
+				/*if(superpopulation.miscpopulation[c]->inputLayer){
+						free(superpopulation.miscpopulation[c]->inputLayer);
+				}*/
+			
+				
+				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
+				for(d = 0; d < hiddenMax; d++){
+						if(superpopulation.miscpopulation[c]->hiddenLayer[d]->weights){
+							free(superpopulation.miscpopulation[c]->hiddenLayer[d]->weights);
+						}
+						/*if(superpopulation.miscpopulation[c]->hiddenLayer[d]){
+							free(superpopulation.miscpopulation[c]->hiddenLayer[d]);
+						}*/
+				}
+				/*if(superpopulation.miscpopulation[c]->hiddenLayer){
+					free(superpopulation.miscpopulation[c]->hiddenLayer);
+				}*/
+				
+				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
+				for(d = 0; d < outputLayerLength; d++){
+						if(superpopulation.miscpopulation[c]->outputLayer[d]->weights){
+							free(superpopulation.miscpopulation[c]->outputLayer[d]->weights);
+							superpopulation.miscpopulation[c]->outputLayer[d]->weights = NULL;
+						}
+						/*if(superpopulation.miscpopulation[c]->outputLayer[d]){
+							free(superpopulation.miscpopulation[c]->outputLayer[d]);
+						}*/
+				}
+				if(superpopulation.miscpopulation[c]->outputLayer){
+					free(superpopulation.miscpopulation[c]->outputLayer);
+					superpopulation.miscpopulation[c]->outputLayer = NULL;
+				}
+				
+				/*if(superpopulation.miscpopulation[c]){
+					free(superpopulation.miscpopulation[c]);
+				}*/
+		}
+		if(superpopulation.miscpopulation){
+			free(superpopulation.miscpopulation);
+			superpopulation.miscpopulation = NULL;
+		}
 		
 		// FREE OLDPOPULATION
 		for(c = 0; c < popsize; c++){
-				//FREE EACH NODE'S WEIGHTS ARRAY
-				free(superpopulation.oldpopulation[c]->inputLayer->weights);
+				//FREE INPUT NODE'S WEIGHTS ARRAY
+				if(superpopulation.oldpopulation[c]->inputLayer->weights){
+					free(superpopulation.oldpopulation[c]->inputLayer->weights);
+					superpopulation.oldpopulation[c]->inputLayer->weights = NULL;
+				}
+				/*if(superpopulation.oldpopulation[c]->inputLayer){
+						free(superpopulation.oldpopulation[c]->inputLayer);
+				}*/
 				
 				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
 				for(d = 0; d < hiddenMax; d++){
-						free(superpopulation.oldpopulation[c]->hiddenLayer[d]->weights);
-						free(superpopulation.oldpopulation[c]->hiddenLayer[d]);
+						if(superpopulation.oldpopulation[c]->hiddenLayer[d]->weights){
+							free(superpopulation.oldpopulation[c]->hiddenLayer[d]->weights);
+							superpopulation.oldpopulation[c]->hiddenLayer[d]->weights = NULL;
+						}
+						/*if(superpopulation.oldpopulation[c]->hiddenLayer[d]){
+							free(superpopulation.oldpopulation[c]->hiddenLayer[d]);
+						}*/
 				}
-				free(superpopulation.oldpopulation[c]->hiddenLayer);
+				if(superpopulation.oldpopulation[c]->hiddenLayer){
+					free(superpopulation.oldpopulation[c]->hiddenLayer);
+					superpopulation.oldpopulation[c]->hiddenLayer = NULL;
+				}
 				
 				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
 				for(d = 0; d < outputLayerLength; d++){
-						free(superpopulation.oldpopulation[c]->outputLayer[d]->weights);
-						free(superpopulation.oldpopulation[c]->outputLayer[d]);
+						if(superpopulation.oldpopulation[c]->outputLayer[d]->weights){
+							free(superpopulation.oldpopulation[c]->outputLayer[d]->weights);
+							superpopulation.oldpopulation[c]->outputLayer[d]->weights = NULL;
+						}
+						/*if(superpopulation.oldpopulation[c]->outputLayer[d]){
+							free(superpopulation.oldpopulation[c]->outputLayer[d]);
+						}*/
 				}
-				free(superpopulation.oldpopulation[c]->outputLayer);
+				if(superpopulation.oldpopulation[c]->outputLayer){
+					free(superpopulation.oldpopulation[c]->outputLayer);
+					superpopulation.oldpopulation[c]->outputLayer = NULL;
+				}
 				
-				free(superpopulation.oldpopulation[c]);
+				/*if(superpopulation.oldpopulation[c]){
+					free(superpopulation.oldpopulation[c]);
+				}*/
 		}
-		free(superpopulation.oldpopulation);
-		
+		if(superpopulation.oldpopulation){
+			free(superpopulation.oldpopulation);
+			superpopulation.oldpopulation = NULL; 
+		}
 		
 		// FREE NEW POPULATION
 
 		for(c = 0; c < popsize; c++){
-				//FREE EACH NODE'S WEIGHTS ARRAY
-				free(superpopulation.newpopulation[c]->inputLayer->weights);
+				//FREE INPUT NODE'S WEIGHTS ARRAY
+				if(superpopulation.newpopulation[c]->inputLayer->weights){
+					free(superpopulation.newpopulation[c]->inputLayer->weights);
+					superpopulation.newpopulation[c]->inputLayer->weights = NULL;
+				}
+				/*if(superpopulation.newpopulation[c]->inputLayer){
+						free(superpopulation.newpopulation[c]->inputLayer);
+				}*/
 				
 				//FREE EACH HIDDEN LAYER ARRAY, INLCUDING NODE WEIGHTS FIRST
 				for(d = 0; d < hiddenMax; d++){
-						free(superpopulation.newpopulation[c]->hiddenLayer[d]->weights);
-						free(superpopulation.newpopulation[c]->hiddenLayer[d]);
+						if(superpopulation.newpopulation[c]->hiddenLayer[d]->weights){
+							free(superpopulation.newpopulation[c]->hiddenLayer[d]->weights);
+							superpopulation.newpopulation[c]->hiddenLayer[d]->weights = NULL;
+						}
+						/*if(superpopulation.newpopulation[c]->hiddenLayer[d]){
+							free(superpopulation.newpopulation[c]->hiddenLayer[d]);
+						}*/
 				}
-				free(superpopulation.newpopulation[c]->hiddenLayer);
+				if(superpopulation.newpopulation[c]->hiddenLayer){
+					free(superpopulation.newpopulation[c]->hiddenLayer);
+					superpopulation.newpopulation[c]->hiddenLayer = NULL;
+				}
 				
 				// FREE EACH OUTPUT LAYER ARRAY, INCLUDING NODE WEIGHTS FIRST
 				for(d = 0; d < outputLayerLength; d++){
-						free(superpopulation.newpopulation[c]->outputLayer[d]->weights);
-						free(superpopulation.newpopulation[c]->outputLayer[d]);
+						if(superpopulation.newpopulation[c]->outputLayer[d]->weights){
+							free(superpopulation.newpopulation[c]->outputLayer[d]->weights);
+							superpopulation.newpopulation[c]->outputLayer[d]->weights = NULL;
+						}
+						/*if(superpopulation.newpopulation[c]->outputLayer[d]){
+							free(superpopulation.newpopulation[c]->outputLayer[d]);
+						}*/
 				}
-				free(superpopulation.newpopulation[c]->outputLayer);
-				
-				free(superpopulation.newpopulation[c]);
+				if(superpopulation.newpopulation[c]->outputLayer){
+					free(superpopulation.newpopulation[c]->outputLayer);
+					superpopulation.newpopulation[c]->outputLayer = NULL;
+				}
+				/*if(superpopulation.newpopulation[c]){
+					free(superpopulation.newpopulation[c]);
+				}*/
 		}
-		free(superpopulation.newpopulation);
+		if(superpopulation.newpopulation){
+			free(superpopulation.newpopulation);
+			superpopulation.newpopulation = NULL;
+		}
 		
 		printf("Algorithm complete! ... and all the malloc-allocated memory has also now been freed!\n");
 }
