@@ -1272,7 +1272,7 @@ printf("Just about to read datafile  line by line...\n");
    //exit(1); // for exiting in order to see result so far without iterating through all the data!!!
 }
 
-void freeMemory(){
+void freeAllocatedMemory(){
 		int c = 0; int d = 0; 
 		//FREE THE TOURNAMENT ARRAY
 		for(c = 0; c < tournamentSize; c++){

@@ -200,47 +200,49 @@ int main(int argc, char * argv[]){
 		printf("cycle is %d\n",c); //+str(t)+", just about to process member "+str(x))    
 
 		#pragma omp parallel for num_threads(4)
-		for(m=0; m < popsize; m++){ // #e.g. for each member FFANN, process it
-			printf("Just about to process member %d\n",m);
-			superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing so that a fresh lms can be calculated
-			
-			eL = expectedResultTriClassification; eM = 0.0f; eH = 0.0f; // low pressure is expected result
+			for(m=0; m < popsize; m++){ // #e.g. for each member FFANN, process it
+				printf("Just about to process member %d\n",m);
+				superpopulation.oldpopulation[m]->lms = 0.0f; // reset this just before processing so that a fresh lms can be calculated
+				
+				eL = expectedResultTriClassification; eM = 0.0f; eH = 0.0f; // low pressure is expected result
 
-			if( linR ){ // process linear data file for regression solving
-					process(linearDataFilename, filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); 
-			}
-			else{ // process all the different data files for multiple output solving
-				process(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
-				
-				eL = 0.0f; eM = expectedResultTriClassification; eH = 0.0f; // medium pressure is expected result
-				process(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				
-				eL = 0.0f; eM = 0.0f; eH = expectedResultTriClassification; // high pressure is expected result
-				process(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-				process(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
-			}
-			
-			// If the ANN just processed has a better LMS than that found so far... copy it to the best ANN Individual 
-			if( superpopulation.oldpopulation[m]->lms < bestlms ){
-					bestlms = superpopulation.oldpopulation[m]->lms; // update current best LMS
-					printf("===========New best ANN found: ===========\n");
+				if( linR ){ // process linear data file for regression solving
+						process(linearDataFilename, filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); 
+				}
+				else{ // process all the different data files for multiple output solving
+					process(filenamesList[0][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[0][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[0][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime);//process selected data through an ANN
 					
-					//====================SAVE BEST DETAILS================
-					copyIndividual(superpopulation.oldpopulation[m], superpopulation.miscpopulation[0]); // copy new best to Best Individual 
+					eL = 0.0f; eM = expectedResultTriClassification; eH = 0.0f; // medium pressure is expected result
+					process(filenamesList[1][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[1][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[1][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[1][3], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
 					
-					printFFANN( superpopulation.miscpopulation[0] );
-					// Now also write the best ANN to file
-					writeFFANNtoFile( superpopulation.miscpopulation[0], c );
+					eL = 0.0f; eM = 0.0f; eH = expectedResultTriClassification; // high pressure is expected result
+					process(filenamesList[2][0], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[2][1], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+					process(filenamesList[2][2], filenameWrite, m, linR, eL, eM, eH, normaliseCeiling, oneTime); //process selected data through an ANN
+				}
+				
+				// If the ANN just processed has a better LMS than that found so far... copy it to the best ANN Individual 
+				#pragma omp critical
+				{
+					if( superpopulation.oldpopulation[m]->lms < bestlms ){
+							bestlms = superpopulation.oldpopulation[m]->lms; // update current best LMS
+							printf("===========New best ANN found: ===========\n");
+							
+							//====================SAVE BEST DETAILS================
+							copyIndividual(superpopulation.oldpopulation[m], superpopulation.miscpopulation[0]); // copy new best to Best Individual 
+							
+							printFFANN( superpopulation.miscpopulation[0] );
+							// Now also write the best ANN to file
+							writeFFANNtoFile( superpopulation.miscpopulation[0], c );
+					}
+				} // end of pragma omp critical 
 			}
-		}
 		
-
 		//=============CREATE NEW GENERATION 
 		
 		//First Elitism
@@ -322,7 +324,9 @@ int main(int argc, char * argv[]){
 	 printFFANN( superpopulation.newpopulation[0] );
 #endif
 
-	freeMemory(); // FINALLY CALL FREE_MEMORY FUNCTION WHICH DEALLOCATES THE MALLOCs :) 
+	freeAllocatedMemory(); // FINALLY CALL FREE_MEMORY FUNCTION WHICH DEALLOCATES THE MALLOCs :) 
 
-}
+	return 0;
+
+} // end of main
 
